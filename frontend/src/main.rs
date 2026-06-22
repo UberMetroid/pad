@@ -149,25 +149,6 @@ pub fn app() -> Html {
         <div class="container">
             <link rel="stylesheet" href={theme_stylesheet_url} />
             <header>
-                <div class="header-top">
-                    <div id="header-title" data-tooltip={format!("Version: {}", *app_version)}>
-                        <h1 style="font-size: 1.5rem;">{"RustPad"}</h1>
-                    </div>
-                    <div class="header-right">
-                        <button id="search-open" class="icon-button" onclick={let s = search_open.clone(); move |_| s.set(true)} data-tooltip="Search">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>
-                        </button>
-                        <button id="settings-button" class="icon-button" onclick={let s = settings_open.clone(); move |_| s.set(true)} data-tooltip="Settings">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 6l8 0" /><path d="M16 6l4 0" /><path d="M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 12l2 0" /><path d="M10 12l10 0" /><path d="M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 18l11 0" /><path d="M19 18l1 0" /></svg>
-                        </button>
-                        <button id="theme-toggle" class="icon-button" onclick={toggle_theme}>
-                            {theme_toggle_icon}
-                        </button>
-                        <button id="logout-button" class="icon-button" onclick={on_logout} data-tooltip="Log Out">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                        </button>
-                    </div>
-                </div>
                 <div class="notepad-controls">
                     <div class="select-wrapper">
                         <button id="new-notepad" class="icon-button" onclick={on_new_notepad} aria-label="Create new notepad">
@@ -199,6 +180,23 @@ pub fn app() -> Html {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 5m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M7 15v-6l2 2l2 -2v6" /><path d="M14 13l2 2l2 -2m-2 2v-6" /></svg>
                         </button>
                     </div>
+                </div>
+                <div id="header-title" data-tooltip={format!("Version: {}", *app_version)}>
+                    <h1 style="font-size: 1.5rem;">{"RustPad"}</h1>
+                </div>
+                <div class="header-right">
+                    <button id="search-open" class="icon-button" onclick={let s = search_open.clone(); move |_| s.set(true)} data-tooltip="Search">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>
+                    </button>
+                    <button id="settings-button" class="icon-button" onclick={let s = settings_open.clone(); move |_| s.set(true)} data-tooltip="Settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 6l8 0" /><path d="M16 6l4 0" /><path d="M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 12l2 0" /><path d="M10 12l10 0" /><path d="M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 18l11 0" /><path d="M19 18l1 0" /></svg>
+                    </button>
+                    <button id="theme-toggle" class="icon-button" onclick={toggle_theme}>
+                        {theme_toggle_icon}
+                    </button>
+                    <button id="logout-button" class="icon-button" onclick={on_logout} data-tooltip="Log Out">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    </button>
                 </div>
             </header>
             <main>
