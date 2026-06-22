@@ -44,9 +44,10 @@ COPY --from=rust-builder /app/frontend/dist /app/frontend/dist
 
 # Setup data and asset directories with correct ownership
 RUN mkdir -p /app/data /app/frontend/dist/Assets && \
-    chown -R nobody:nobody /app
+    chown -R 99:100 /app
 
-USER nobody
+# Run as Unraid nobody:users
+USER 99:100
 
 # Mount data volume
 VOLUME /app/data
