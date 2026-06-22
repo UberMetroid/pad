@@ -120,40 +120,51 @@ Run `docker compose up -d` to launch the services.
 ## File Tree
 
 ```
-rustpad/
+RustPad/
 ├── Cargo.toml          # Workspace root manifest
 ├── Dockerfile          # Multi-stage optimized Docker builder
 ├── .github/            # GitHub Actions integration
 │   └── workflows/
-│       └── ci.yml      # CI lint/compile check pipeline
+│       ├── ci.yml      # CI lint/compile check pipeline
+│       └── docker-publish.yml # CD container publisher
 ├── data/               # Persistent text files and index databases
-├── src/                # Backend Rust Axum source files
-│   ├── main.rs         # Server initialization, config parsing, file watcher
-│   ├── state.rs        # AppState and rate-limiting mappings
-│   ├── search.rs       # In-memory search cache and sequence matching
-│   ├── utils.rs        # IP extractor and cryptographic hashing
-│   ├── ws.rs           # WebSocket communication handler
-│   ├── migration.rs    # Schema layout migrations
-│   └── routes/         # Router controllers
-│       ├── mod.rs      # REST endpoint mappings and PWA manifest builder
-│       ├── auth.rs     # PIN authentication and session validations
-│       ├── notepads_crud.rs # Notepad metadata routes
-│       └── notepads_io.rs   # Note saving, deleting, and loading IO
+├── backend/            # Backend Crate (Axum API)
+│   ├── Cargo.toml      # Backend dependency manifest
+│   └── src/            # Backend Rust Axum source files
+│       ├── main.rs     # Server initialization, config parsing, file watcher
+│       ├── state.rs    # AppState and rate-limiting mappings
+│       ├── search.rs   # In-memory search cache and sequence matching
+│       ├── utils.rs    # IP extractor and cryptographic hashing
+│       ├── ws.rs       # WebSocket communication handler
+│       ├── migration.rs# Schema layout migrations
+│       ├── tests.rs    # Backend unit test suite
+│       └── routes/     # Router controllers
+│           ├── mod.rs  # REST endpoint mappings and PWA manifest builder
+│           ├── auth.rs # PIN authentication and session validations
+│           ├── notepads_crud.rs # Notepad metadata routes
+│           ├── notepads_io.rs   # Note saving, deleting, and loading IO
+│           └── pages.rs# Static html page fallback templates
 └── frontend/           # Frontend Rust Yew source files
     ├── Cargo.toml      # Frontend dependency manifest
     ├── index.html      # Trunk template HTML entrypoint
-    ├── src/            # Yew components
-        ├── main.rs     # Shell routing component
+    ├── Assets/         # Static assets and stylesheets
+    │   ├── app.css     # Main editor styling
+    │   ├── base.css    # Variables and CSS resets
+    │   ├── header.css  # Toolbar header layout styling
+    │   ├── login.css   # PIN authentication panel layout styling
+    │   ├── preview-styles.css # Markdown preview styling
+    │   └── service-worker.js # Offline service worker caching assets
+    └── src/            # Yew components
+        ├── main.rs     # App entrypoint and locale mounting
+        ├── app.rs      # Main coordinator Yew component
         ├── editor.rs   # Core textarea notepad workspace
         ├── login.rs    # PIN code entry panel
-        ├── preview.rs  # Secure DOM markdown viewer
-        ├── search.rs   # Fuzzy document finder modal
         ├── services.rs # API REST HTTP client
-        ├── settings.rs # Modal configuration options
         ├── collab.rs   # WS sync loop hook
         ├── collab_utils.rs # Peer cursor calculation JS interface
         ├── header.rs   # Toolbar header and language selectors
-        └── i18n.rs     # Translation Context provider
+        ├── storage.rs  # LocalStorage abstractions
+        └── i18n.rs     # Translation Context provider and dictionary loaders
 ```
 
 ---
