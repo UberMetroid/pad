@@ -164,7 +164,7 @@ pub fn login(props: &LoginProps) -> Html {
     };
 
     html! {
-        <div class="container login-container">
+        <div class="login-container">
             <button id="theme-toggle" class="theme-toggle" onclick={toggle_theme} aria-label="Toggle dark mode">
                 {theme_toggle_icon}
             </button>

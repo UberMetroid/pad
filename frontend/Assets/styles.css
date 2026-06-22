@@ -623,10 +623,13 @@ main {
 
 #login-content {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     border-radius: 12px;
+    background-color: var(--modal-bg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     max-width: 400px;
     width: 90%;
+    margin: 40px auto;
 }
 
 /* Theme toggle for login page */
