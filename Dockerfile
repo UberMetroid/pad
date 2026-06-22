@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Copy cargo configuration and dependency manifests
 COPY Cargo.toml Cargo.lock ./
-COPY frontend/Cargo.toml ./frontend/
+COPY frontend/Cargo.toml frontend/index.html ./frontend/
 COPY backend/Cargo.toml ./backend/
 
 # Cache backend dependencies by building a dummy binary
