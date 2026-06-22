@@ -2,7 +2,7 @@ pub mod auth;
 pub mod notepads_crud;
 pub mod notepads_io;
 
-pub use auth::{serve_root, serve_login, verify_pin, pin_required, get_config, require_pin};
+pub use auth::{serve_root, serve_login, verify_pin, pin_required, get_config, require_pin, logout};
 pub use notepads_crud::{get_notepads, create_notepad, rename_notepad};
 pub use notepads_io::{get_notes, save_notes, delete_notepad};
 

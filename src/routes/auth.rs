@@ -241,3 +241,9 @@ pub async fn verify_pin(
             .into_response()
     }
 }
+
+// API: Logout
+pub async fn logout(jar: CookieJar) -> impl IntoResponse {
+    let jar = jar.remove(Cookie::build(COOKIE_NAME).path("/").build());
+    (jar, axum::Json(serde_json::json!({ "success": true }))).into_response()
+}

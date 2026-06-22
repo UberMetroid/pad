@@ -67,78 +67,68 @@ pub fn app() -> Html {
 
     let on_notepad_select = {
         let active_id = active_notepad_id.clone();
-        Callback::from(move |e: Event| {
-            let select: web_sys::HtmlSelectElement = e.target_unchecked_into();
-            active_id.set(select.value());
-        })
+        Callback::from(move |e: Event| active_id.set(e.target_unchecked_into::<web_sys::HtmlSelectElement>().value()))
     };
 
     let on_new_notepad = {
         let notepads = notepads.clone();
         let active_id = active_notepad_id.clone();
         Callback::from(move |_| {
-            let notepads = notepads.clone();
-            let active_id = active_id.clone();
+            let (n, a) = (notepads.clone(), active_id.clone());
             spawn_local(async move {
-                if let Ok(new_note) = ApiService::create_notepad().await {
-                    active_id.set(new_note.id.clone());
-                    if let Ok(res) = ApiService::get_notepads().await {
-                        notepads.set(res.notepads_list);
-                    }
+                if let Ok(note) = ApiService::create_notepad().await {
+                    a.set(note.id);
+                    if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
                 }
             });
         })
     };
 
     let on_rename_confirm = {
-        let notepad_id = (*active_notepad_id).clone();
+        let nid = (*active_notepad_id).clone();
         let rename_open = rename_open.clone();
         let notepads = notepads.clone();
         Callback::from(move |new_name: String| {
-            let nid = notepad_id.clone();
-            let rename_open = rename_open.clone();
-            let notepads = notepads.clone();
+            let (nid, ro, n) = (nid.clone(), rename_open.clone(), notepads.clone());
             spawn_local(async move {
                 let _ = ApiService::rename_notepad(&nid, &new_name).await;
-                rename_open.set(false);
-                if let Ok(res) = ApiService::get_notepads().await {
-                    notepads.set(res.notepads_list);
-                }
+                ro.set(false);
+                if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
             });
         })
     };
 
     let on_delete_confirm = {
-        let notepad_id = (*active_notepad_id).clone();
+        let nid = (*active_notepad_id).clone();
         let delete_open = delete_open.clone();
         let active_id = active_notepad_id.clone();
         let notepads = notepads.clone();
         Callback::from(move |_| {
-            let nid = notepad_id.clone();
-            let delete_open = delete_open.clone();
-            let active_id = active_id.clone();
-            let notepads = notepads.clone();
+            let (nid, do_open, aid, n) = (nid.clone(), delete_open.clone(), active_id.clone(), notepads.clone());
             spawn_local(async move {
                 let _ = ApiService::delete_notepad(&nid).await;
-                delete_open.set(false);
-                active_id.set("default".to_string());
-                if let Ok(res) = ApiService::get_notepads().await {
-                    notepads.set(res.notepads_list);
-                }
+                do_open.set(false);
+                aid.set("default".to_string());
+                if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
             });
         })
     };
 
     let toggle_theme = Callback::from(move |_| {
-        let current = StorageService::get_theme();
-        let next = if current == "dark" { "light" } else { "dark" };
+        let next = if StorageService::get_theme() == "dark" { "light" } else { "dark" };
         StorageService::set_theme(next);
-        if let Some(doc) = window().and_then(|w| w.document()) {
-            if let Some(root) = doc.document_element() {
-                let _ = root.set_attribute("data-theme", next);
-            }
-        }
+        let _ = window().and_then(|w| w.document()).and_then(|d| d.document_element()).map(|r| r.set_attribute("data-theme", next));
     });
+
+    let on_logout = {
+        let auth = authenticated.clone();
+        Callback::from(move |_| {
+            let auth = auth.clone();
+            spawn_local(async move {
+                if ApiService::logout().await.is_ok() { auth.set(false); }
+            });
+        })
+    };
 
     let current_theme = StorageService::get_theme();
     let theme_stylesheet_url = if current_theme == "dark" {
@@ -172,6 +162,9 @@ pub fn app() -> Html {
                         </button>
                         <button id="theme-toggle" class="icon-button" onclick={toggle_theme}>
                             {theme_toggle_icon}
+                        </button>
+                        <button id="logout-button" class="icon-button" onclick={on_logout} data-tooltip="Log Out">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                         </button>
                     </div>
                 </div>

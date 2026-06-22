@@ -190,7 +190,8 @@ async fn main() {
     let public_api_routes = Router::new()
         .route("/verify-pin", post(verify_pin))
         .route("/pin-required", get(pin_required))
-        .route("/config", get(get_config));
+        .route("/config", get(get_config))
+        .route("/logout", post(logout));
 
     let app = Router::new()
         .route("/", get(serve_root))

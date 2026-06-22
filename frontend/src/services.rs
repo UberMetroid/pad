@@ -120,6 +120,13 @@ impl ApiService {
         response.json::<VerifyPinResponse>().await
     }
 
+    pub async fn logout() -> Result<(), gloo_net::Error> {
+        Request::post("/api/logout")
+            .send()
+            .await?;
+        Ok(())
+    }
+
     pub async fn get_config() -> Result<ConfigResponse, gloo_net::Error> {
         Request::get("/api/config")
             .send()
