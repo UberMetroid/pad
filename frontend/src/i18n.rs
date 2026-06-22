@@ -26,13 +26,27 @@ pub fn detect_browser_locale() -> String {
         let navigator = window.navigator();
         if let Some(lang) = navigator.language() {
             let l = lang.to_lowercase();
-            if l.starts_with("zh") { return "zh".to_string(); }
-            if l.starts_with("es") { return "es".to_string(); }
-            if l.starts_with("de") { return "de".to_string(); }
-            if l.starts_with("ja") { return "ja".to_string(); }
-            if l.starts_with("fr") { return "fr".to_string(); }
-            if l.starts_with("pt") { return "pt".to_string(); }
-            if l.starts_with("ru") { return "ru".to_string(); }
+            if l.starts_with("zh") {
+                return "zh".to_string();
+            }
+            if l.starts_with("es") {
+                return "es".to_string();
+            }
+            if l.starts_with("de") {
+                return "de".to_string();
+            }
+            if l.starts_with("ja") {
+                return "ja".to_string();
+            }
+            if l.starts_with("fr") {
+                return "fr".to_string();
+            }
+            if l.starts_with("pt") {
+                return "pt".to_string();
+            }
+            if l.starts_with("ru") {
+                return "ru".to_string();
+            }
         }
     }
     "en".to_string()

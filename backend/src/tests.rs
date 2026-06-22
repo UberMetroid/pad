@@ -43,5 +43,8 @@ fn test_parse_trusted_proxies() {
 fn test_is_trusted_proxy() {
     let list = utils::parse_trusted_proxies("10.0.0.0/8");
     assert!(utils::is_trusted_proxy("10.0.0.1".parse().unwrap(), &list));
-    assert!(!utils::is_trusted_proxy("192.168.1.1".parse().unwrap(), &list));
+    assert!(!utils::is_trusted_proxy(
+        "192.168.1.1".parse().unwrap(),
+        &list
+    ));
 }

@@ -34,7 +34,9 @@ pub fn translate(key: &str) -> Option<&'static str> {
         "cancel" => Some("Отмена"),
         "reset" => Some("Сбросить"),
         "delete_title" => Some("Удалить блокнот"),
-        "delete_msg" => Some("Вы уверены, что хотите удалить этот блокнот? Это действие необратимо."),
+        "delete_msg" => {
+            Some("Вы уверены, что хотите удалить этот блокнот? Это действие необратимо.")
+        }
         "delete_confirm" => Some("Удалить"),
         "shortcuts_title" => Some("Горячие клавиши"),
         "sc_search" => Some("Поиск по блокнотам"),

@@ -7,8 +7,8 @@ use axum_extra::extract::cookie::CookieJar;
 use std::collections::HashMap;
 use tokio::fs;
 
-use crate::state::AppState;
 use crate::routes::auth::is_authenticated;
+use crate::state::AppState;
 
 // Redirect URL validator helper
 pub fn is_valid_redirect_url(url: &str) -> bool {

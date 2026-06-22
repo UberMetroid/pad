@@ -20,8 +20,8 @@ mod header;
 mod i18n;
 mod login;
 mod services;
-mod types;
 mod storage;
+mod types;
 
 use app::App;
 

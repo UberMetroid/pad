@@ -34,7 +34,9 @@ pub fn translate(key: &str) -> Option<&'static str> {
         "cancel" => Some("Annuler"),
         "reset" => Some("Réinitialiser"),
         "delete_title" => Some("Supprimer le bloc-notes"),
-        "delete_msg" => Some("Voulez-vous vraiment supprimer ce bloc-notes ? Cette action est irréversible."),
+        "delete_msg" => {
+            Some("Voulez-vous vraiment supprimer ce bloc-notes ? Cette action est irréversible.")
+        }
         "delete_confirm" => Some("Supprimer"),
         "shortcuts_title" => Some("Raccourcis clavier"),
         "sc_search" => Some("Rechercher des blocs-notes"),

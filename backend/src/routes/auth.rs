@@ -12,8 +12,6 @@ use crate::utils::{get_client_ip, hash_pin, secure_compare};
 
 pub const COOKIE_NAME: &str = "rustpad_auth";
 
-
-
 // Authenticated helper
 pub fn is_authenticated(jar: &CookieJar, state: &AppState) -> bool {
     let pin = match &state.config.pin {
@@ -43,8 +41,6 @@ pub async fn require_pin(
     }
     next.run(req).await
 }
-
-
 
 // API: Config
 pub async fn get_config(State(state): State<AppState>) -> impl IntoResponse {

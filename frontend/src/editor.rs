@@ -36,9 +36,18 @@ pub fn editor(props: &EditorProps) -> Html {
         use_effect_with(save_status.clone(), move |save| {
             let save = save.clone();
             match save.as_str() {
-                "unsaved" => on_status.emit(Some((format!("● {}", locale.t("unsaved_changes")), "error".to_string()))),
-                "saving" => on_status.emit(Some((format!("◌ {}", locale.t("saving")), "info".to_string()))),
-                _ => on_status.emit(Some((format!("✓ {}", locale.t("saved")), "success".to_string()))),
+                "unsaved" => on_status.emit(Some((
+                    format!("● {}", locale.t("unsaved_changes")),
+                    "error".to_string(),
+                ))),
+                "saving" => on_status.emit(Some((
+                    format!("◌ {}", locale.t("saving")),
+                    "info".to_string(),
+                ))),
+                _ => on_status.emit(Some((
+                    format!("✓ {}", locale.t("saved")),
+                    "success".to_string(),
+                ))),
             }
             || ()
         });

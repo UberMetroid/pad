@@ -34,7 +34,9 @@ pub fn translate(key: &str) -> Option<&'static str> {
         "cancel" => Some("Cancel"),
         "reset" => Some("Reset"),
         "delete_title" => Some("Delete Notepad"),
-        "delete_msg" => Some("Are you sure you want to delete this notepad? This action cannot be undone."),
+        "delete_msg" => {
+            Some("Are you sure you want to delete this notepad? This action cannot be undone.")
+        }
         "delete_confirm" => Some("Delete"),
         "shortcuts_title" => Some("Keyboard Shortcuts"),
         "sc_search" => Some("Search Notepads"),
