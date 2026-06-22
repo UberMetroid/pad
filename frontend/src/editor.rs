@@ -186,10 +186,16 @@ pub fn editor(props: &EditorProps) -> Html {
     let show_editor = props.preview_mode != "preview-only";
     let show_preview = props.preview_mode != "off";
 
+    let wrapper_class = match props.preview_mode.as_str() {
+        "split" => "editor-preview-wrapper split-view",
+        "preview-only" => "editor-preview-wrapper preview-only",
+        _ => "editor-preview-wrapper",
+    };
+
     html! {
-        <div id="editor-preview-wrapper" class="editor-preview-wrapper">
+        <div id="editor-preview-wrapper" class={wrapper_class}>
             if show_editor {
-                <div id="editor-container" class={classes!("editor-container", if props.preview_mode == "split" { Some("split-view") } else { None })}>
+                <div id="editor-container" class="editor-container">
                     <Toolbar on_click={on_toolbar_click} />
                     <textarea 
                         id="editor" 
