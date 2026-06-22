@@ -3,11 +3,9 @@
 A stupid simple, no auth (unless you want it!), modern notepad application with auto-save functionality and dark mode support.
 
 <p align="center">
-  <img src="https://img.shields.io/github/package-json/v/dumbwareio/rustpad" alt="GitHub package.json version" />
-  <a href="https://hub.docker.com/r/dumbwareio/rustpad" target="_blank"><img src="https://img.shields.io/docker/v/dumbwareio/rustpad?logo=docker&label=Docker" alt="Docker Image Version" /></a>
-  <img src="https://img.shields.io/docker/pulls/dumbwareio/rustpad" alt="Docker Pulls" />
+  <img src="https://img.shields.io/github/package-json/v/UberMetroid/RustPad" alt="GitHub package.json version" />
   <img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" />
-  <img src="https://img.shields.io/github/actions/workflow/status/dumbwareio/rustpad/docker-publish.yml" alt="GitHub Actions Workflow Status" />
+  <img src="https://img.shields.io/github/actions/workflow/status/UberMetroid/RustPad/docker-publish.yml" alt="GitHub Actions Workflow Status" />
   <!-- <a href="https://rustpad.dumbware.io/" target="_blank">
     <img alt="Static Badge" src="https://img.shields.io/badge/demo-site?label=rustpad" />
   </a> -->
@@ -65,7 +63,7 @@ A stupid simple, no auth (unless you want it!), modern notepad application with 
 # Pull and run with one command
 docker run -p 3000:3000 \
   -v ./data:/app/data \
-  dumbwareio/rustpad:latest
+  ghcr.io/ubermetroid/rustpad:latest
 ```
 
 1. Go to http://localhost:3000
@@ -81,7 +79,7 @@ Create a `docker-compose.yml` file:
 ```yaml
 services:
   rustpad:
-    image: dumbwareio/rustpad:latest
+    image: ghcr.io/ubermetroid/rustpad:latest
     container_name: rustpad
     restart: unless-stopped
     ports:
@@ -167,17 +165,17 @@ npm run node-start
 If you're using Windows PowerShell with Docker, use this format for paths:
 
 ```powershell
-docker run -p 3000:3000 -v "${PWD}\data:/app/data" dumbwareio/rustpad:latest
+docker run -p 3000:3000 -v "${PWD}\data:/app/data" ghcr.io/ubermetroid/rustpad:latest
 ```
 
 ## Upgrading from Previous Versions
 
 ### ⚠️ Important: Docker Permission Issues (New Installations & Upgrades)
 
-As of [PR #76](https://github.com/DumbWareio/RustPad/pull/76), RustPad now runs as a non-root user (UID 1000) inside the Docker container for improved security. This can cause permission issues in two scenarios:
+As of [PR #76](https://github.com/UberMetroid/RustPad/pull/76), RustPad now runs as a non-root user (UID 1000) inside the Docker container for improved security. This can cause permission issues in two scenarios:
 
-1. **Upgrading from a previous version** - Existing data directory may have incorrect permissions, causing notepads to appear blank ([Issue #74](https://github.com/DumbWareio/RustPad/issues/74))
-2. **Fresh installation** - Docker may create the data directory with host user permissions that don't match UID 1000, causing container restart loops with `EACCES: permission denied` errors ([Issue #79](https://github.com/DumbWareio/RustPad/issues/79))
+1. **Upgrading from a previous version** - Existing data directory may have incorrect permissions, causing notepads to appear blank ([Issue #74](https://github.com/UberMetroid/RustPad/issues/74))
+2. **Fresh installation** - Docker may create the data directory with host user permissions that don't match UID 1000, causing container restart loops with `EACCES: permission denied` errors ([Issue #79](https://github.com/UberMetroid/RustPad/issues/79))
 
 #### Symptoms
 
@@ -551,7 +549,7 @@ console.log("Hello, world!");
 
 ## Technical Details
 
-- Backend: Node.js with Express
+- Backend: Rust (Axum + Tokio)
 - Frontend: Vanilla JavaScript
 - Storage: File-based storage in `data` directory
 - Styling: Modern CSS with CSS variables for theming
@@ -559,8 +557,8 @@ console.log("Hello, world!");
 
 ## Links
 
-- GitHub: [github.com/dumbwareio/rustpad](https://github.com/dumbwareio/rustpad)
-- Docker Hub: [hub.docker.com/r/dumbwareio/rustpad](https://hub.docker.com/r/dumbwareio/rustpad)
+- GitHub: [github.com/UberMetroid/RustPad](https://github.com/UberMetroid/RustPad)
+- Registry: [ghcr.io/ubermetroid/rustpad](https://ghcr.io/ubermetroid/rustpad)
 
 ## Contributing
 

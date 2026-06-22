@@ -1,6 +1,6 @@
 services:
   rustpad:
-    image: dumbwareio/rustpad:latest
+    image: ghcr.io/ubermetroid/rustpad:latest
     # build: .
     container_name: rustpad
     restart: unless-stopped
