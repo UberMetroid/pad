@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use gloo_timers::callback::Timeout;
 use gloo_net::websocket::futures::WebSocket;
@@ -72,6 +73,54 @@ pub fn editor(props: &EditorProps) -> Html {
             }
             
             || ()
+        });
+    }
+
+    {
+        let notepad_id = props.notepad_id.clone();
+        let timer_ref = debounce_timer.clone();
+        let save_status = save_status.clone();
+        let editor_ref = editor_ref.clone();
+        
+        use_effect_with(notepad_id, move |nid| {
+            let nid = nid.clone();
+            let timer_ref = timer_ref.clone();
+            let save_status = save_status.clone();
+            let editor_ref = editor_ref.clone();
+            
+            let on_keydown = wasm_bindgen::prelude::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |e: web_sys::KeyboardEvent| {
+                let ctrl = e.ctrl_key() || e.meta_key();
+                let key = e.key();
+
+                if ctrl && key.to_lowercase() == "s" {
+                    e.prevent_default();
+                    
+                    if let Some(textarea) = editor_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                        let save_val = textarea.value();
+                        
+                        if let Some(t) = timer_ref.borrow_mut().take() {
+                            t.cancel();
+                        }
+                        
+                        let nid = nid.clone();
+                        let status = save_status.clone();
+                        status.set("saving".to_string());
+                        
+                        spawn_local(async move {
+                            if ApiService::save_notes(&nid, &save_val).await.is_ok() {
+                                status.set("saved".to_string());
+                            }
+                        });
+                    }
+                }
+            });
+            
+            let target = web_sys::window().unwrap();
+            let _ = target.add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref());
+            
+            move || {
+                let _ = target.remove_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref());
+            }
         });
     }
 

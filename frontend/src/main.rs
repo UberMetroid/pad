@@ -6,8 +6,9 @@ mod preview;
 mod search;
 mod editor;
 mod modals;
-
+mod shortcuts;
 use yew::prelude::*;
+use shortcuts::register_keyboard_shortcuts;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::window;
 
@@ -59,17 +60,6 @@ pub fn app() -> Html {
         });
     }
 
-    if !*authenticated {
-        return html! {
-            <Login on_login_success={Callback::from(move |_| authenticated.set(true))} />
-        };
-    }
-
-    let on_notepad_select = {
-        let active_id = active_notepad_id.clone();
-        Callback::from(move |e: Event| active_id.set(e.target_unchecked_into::<web_sys::HtmlSelectElement>().value()))
-    };
-
     let on_new_notepad = {
         let notepads = notepads.clone();
         let active_id = active_notepad_id.clone();
@@ -82,6 +72,24 @@ pub fn app() -> Html {
                 }
             });
         })
+    };
+
+    register_keyboard_shortcuts(
+        authenticated.clone(),
+        search_open.clone(),
+        preview_mode.clone(),
+        on_new_notepad.clone(),
+    );
+
+    if !*authenticated {
+        return html! {
+            <Login on_login_success={Callback::from(move |_| authenticated.set(true))} />
+        };
+    }
+
+    let on_notepad_select = {
+        let active_id = active_notepad_id.clone();
+        Callback::from(move |e: Event| active_id.set(e.target_unchecked_into::<web_sys::HtmlSelectElement>().value()))
     };
 
     let on_rename_confirm = {
