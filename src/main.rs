@@ -89,7 +89,7 @@ async fn main() {
     let root_path = PathBuf::from(".");
     let data_dir = root_path.join("data");
     let notepads_file = data_dir.join("notepads.json");
-    let public_dir = root_path.join("public");
+    let public_dir = root_path.join("frontend/dist");
 
     // Initialize state
     let state: AppState = Arc::new(AppStateInner {
@@ -219,7 +219,7 @@ async fn main() {
             "/css/@highlightjs",
             ServeDir::new("node_modules/@highlightjs/cdn-assets/styles"),
         )
-        .fallback_service(ServeDir::new("public"))
+        .fallback_service(ServeDir::new("frontend/dist"))
         .layer(cors)
         .with_state(state.clone());
 

@@ -71,7 +71,7 @@ pub async fn serve_root(
         return Redirect::temporary(&format!("/login?redirect={}", redirect_param)).into_response();
     }
 
-    match fs::read_to_string(state.data_dir.parent().unwrap().join("public/index.html")).await {
+    match fs::read_to_string(state.data_dir.parent().unwrap().join("frontend/dist/index.html")).await {
         Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -96,11 +96,11 @@ pub async fn serve_login(
         return Redirect::temporary("/").into_response();
     }
 
-    match fs::read_to_string(state.data_dir.parent().unwrap().join("public/login.html")).await {
+    match fs::read_to_string(state.data_dir.parent().unwrap().join("frontend/dist/index.html")).await {
         Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error loading login.html: {}", e),
+            format!("Error loading index.html: {}", e),
         )
             .into_response(),
     }

@@ -1,0 +1,22 @@
+{
+  "background_color": "#ffffff",
+  "description": "A simple notepad application",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "192x192",
+      "src": "dumbpad.png",
+      "type": "image/png"
+    },
+    {
+      "sizes": "512x512",
+      "src": "dumbpad.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "DumbPad",
+  "orientation": "any",
+  "short_name": "DumbPad",
+  "start_url": "/",
+  "theme_color": "#000000"
+}

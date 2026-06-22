@@ -54,7 +54,7 @@ pub async fn search_api(
 
 // Service worker serving
 pub async fn serve_service_worker(State(state): State<AppState>) -> impl IntoResponse {
-    let sw_path = state.data_dir.parent().unwrap().join("public/service-worker.js");
+    let sw_path = state.data_dir.parent().unwrap().join("frontend/dist/service-worker.js");
     match fs::read_to_string(&sw_path).await {
         Ok(content) => {
             let re = regex::Regex::new(r#"let APP_VERSION = ".*?";"#).unwrap();

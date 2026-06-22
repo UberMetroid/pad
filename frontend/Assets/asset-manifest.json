@@ -1,0 +1,15 @@
+[
+  "/index.html",
+  "/login.html",
+  "/service-worker.js",
+  "/managers/settings.js",
+  "/managers/storage.js",
+  "/managers/confirmation.js",
+  "/managers/search.js",
+  "/managers/cursor-manager.js",
+  "/managers/toaster.js",
+  "/managers/collaboration.js",
+  "/managers/operations.js",
+  "/managers/preview.js",
+  "/app.js"
+]

@@ -1,18 +1,40 @@
-# --- Stage 1: Build the Rust Backend ---
+# --- Stage 1: Build the Rust Backend and Frontend ---
 FROM rust:alpine AS rust-builder
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev wget
+
+# Install WebAssembly target and Trunk builder
+RUN rustup target add wasm32-unknown-unknown
+RUN case "$(uname -m)" in \
+      x86_64) ARCH=x86_64 ;; \
+      aarch64) ARCH=aarch64 ;; \
+      *) echo "Unsupported architecture" && exit 1 ;; \
+    esac && \
+    wget -qO- "https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-${ARCH}-unknown-linux-musl.tar.gz" | tar -xzf- -C /usr/local/bin
 
 WORKDIR /app
 
-# Cache dependencies by building a dummy project
+# Copy cargo configuration and dependency manifests
 COPY Cargo.toml Cargo.lock ./
+COPY frontend/Cargo.toml ./frontend/
+
+# Cache backend dependencies by building a dummy binary
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build --release
 RUN rm -f target/release/deps/rustpad*
 
-# Copy actual source code and build it
+# Cache frontend dependencies
+RUN mkdir -p frontend/src && echo "fn main() {}" > frontend/src/main.rs
+RUN cd frontend && trunk build --release
+
+# Copy actual source code and compile
 COPY src ./src
-RUN cargo build --release
+COPY frontend/src ./frontend/src
+COPY frontend/index.html ./frontend/
+COPY frontend/service-worker.js ./frontend/
+COPY frontend/Assets ./frontend/Assets
+
+RUN cd frontend && trunk build --release
+RUN cargo build --release --bin rustpad
 
 # --- Stage 2: Fetch Frontend Node Modules ---
 FROM node:22-alpine AS node-builder
@@ -32,14 +54,14 @@ RUN addgroup -g 1000 rustpad && \
 # Copy compiled Rust binary
 COPY --from=rust-builder /app/target/release/rustpad /app/rustpad
 
+# Copy compiled frontend assets
+COPY --from=rust-builder /app/frontend/dist /app/frontend/dist
+
 # Copy node modules (frontend dependencies)
 COPY --from=node-builder /app/node_modules /app/node_modules
 
-# Copy static frontend public assets
-COPY public /app/public
-
 # Setup data and asset directories with correct ownership
-RUN mkdir -p /app/data /app/public/Assets && \
+RUN mkdir -p /app/data /app/frontend/dist/Assets && \
     chown -R rustpad:rustpad /app
 
 USER rustpad
