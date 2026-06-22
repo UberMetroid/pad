@@ -17,7 +17,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "logout") => Some("Выйти"),
         ("pt", "online") => Some("online"),
         ("ru", "online") => Some("в сети"),
-        
+
         // Editor
         ("pt", "saving") => Some("Salvando..."),
         ("ru", "saving") => Some("Сохранение..."),
@@ -35,7 +35,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "offline") => Some("Вне сети"),
         ("pt", "placeholder") => Some("Comece a digitar seu markdown aqui..."),
         ("ru", "placeholder") => Some("Начните вводить текст здесь..."),
-        
+
         // Settings modal
         ("pt", "settings_title") => Some("Configurações"),
         ("ru", "settings_title") => Some("Настройки"),
@@ -49,7 +49,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "settings_lang") => Some("Язык приложения:"),
         ("pt", "settings_save") => Some("Salvar Configurações"),
         ("ru", "settings_save") => Some("Сохранить настройки"),
-        
+
         // Search modal
         ("pt", "search_title") => Some("Fuzzy Busca em Blocos de Notas"),
         ("ru", "search_title") => Some("Поиск по блокнотам"),
@@ -57,7 +57,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "search_placeholder") => Some("Введите заголовок или текст для поиска..."),
         ("pt", "search_no_results") => Some("No matching notepads found."),
         ("ru", "search_no_results") => Some("Ничего не найдено."),
-        
+
         // Login
         ("pt", "login_title") => Some("RustPad"),
         ("ru", "login_title") => Some("RustPad"),
@@ -67,7 +67,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "login_prompt") => Some("Введите PIN-код для доступа"),
         ("pt", "login_btn") => Some("Unlock"),
         ("ru", "login_btn") => Some("Unlock"),
-        
+
         // Rename modal
         ("pt", "rename_title") => Some("Renomear Bloco de Notas"),
         ("ru", "rename_title") => Some("Переименовать блокнот"),
@@ -77,7 +77,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "cancel") => Some("Отмена"),
         ("pt", "reset") => Some("Redefinir"),
         ("ru", "reset") => Some("Сбросить"),
-        
+
         // Delete modal
         ("pt", "delete_title") => Some("Excluir Bloco de Notas"),
         ("ru", "delete_title") => Some("Удалить блокнот"),
@@ -85,7 +85,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "delete_msg") => Some("Вы уверены, что хотите удалить этот блокнот? Это действие необратимо."),
         ("pt", "delete_confirm") => Some("Excluir"),
         ("ru", "delete_confirm") => Some("Удалить"),
-        
+
         // Shortcuts modal
         ("pt", "shortcuts_title") => Some("Atalhos de Teclado"),
         ("ru", "shortcuts_title") => Some("Горячие клавиши"),
@@ -101,7 +101,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "sc_help") => Some("Справка по горячим клавишам"),
         ("pt", "close") => Some("Fechar"),
         ("ru", "close") => Some("Закрыть"),
-        
+
         // Preview modes
         ("pt", "prev_editor") => Some("Editor"),
         ("ru", "prev_editor") => Some("Редактор"),
@@ -109,7 +109,7 @@ pub fn translate_pt_ru(lang: &str, key: &str) -> Option<&'static str> {
         ("ru", "prev_split") => Some("Разделенный"),
         ("pt", "prev_preview") => Some("Visualização"),
         ("ru", "prev_preview") => Some("Предпросмотр"),
-        
+
         // Toolbar tooltips
         ("pt", "tb_bold") => Some("Negrito"),
         ("ru", "tb_bold") => Some("Жирный"),

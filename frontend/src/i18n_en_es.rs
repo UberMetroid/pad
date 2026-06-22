@@ -17,7 +17,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "logout") => Some("Cerrar sessão"),
         ("en", "online") => Some("online"),
         ("es", "online") => Some("en línea"),
-        
+
         // Editor
         ("en", "saving") => Some("Saving..."),
         ("es", "saving") => Some("Guardando..."),
@@ -35,7 +35,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "offline") => Some("Sin conexión"),
         ("en", "placeholder") => Some("Start typing your markdown here..."),
         ("es", "placeholder") => Some("Empieza a escribir tu markdown aquí..."),
-        
+
         // Settings modal
         ("en", "settings_title") => Some("Settings"),
         ("es", "settings_title") => Some("Ajustes"),
@@ -49,7 +49,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "settings_lang") => Some("Idioma de la aplicación:"),
         ("en", "settings_save") => Some("Save Settings"),
         ("es", "settings_save") => Some("Guardar Ajustes"),
-        
+
         // Search modal
         ("en", "search_title") => Some("Fuzzy Search Notepads"),
         ("es", "search_title") => Some("Búsqueda de blocs de notas"),
@@ -57,7 +57,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "search_placeholder") => Some("Escribe título o contenido para buscar..."),
         ("en", "search_no_results") => Some("No matching notepads found."),
         ("es", "search_no_results") => Some("No se encontraron blocs de notas."),
-        
+
         // Login
         ("en", "login_title") => Some("RustPad"),
         ("es", "login_title") => Some("RustPad"),
@@ -67,7 +67,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "login_prompt") => Some("Introduce el PIN de autenticación para acceder"),
         ("en", "login_btn") => Some("Unlock"),
         ("es", "login_btn") => Some("Desbloquear"),
-        
+
         // Rename modal
         ("en", "rename_title") => Some("Rename Notepad"),
         ("es", "rename_title") => Some("Renombrar Bloc de Notas"),
@@ -77,15 +77,19 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "cancel") => Some("Cancelar"),
         ("en", "reset") => Some("Reset"),
         ("es", "reset") => Some("Restablecer"),
-        
+
         // Delete modal
         ("en", "delete_title") => Some("Delete Notepad"),
         ("es", "delete_title") => Some("Eliminar Bloc de Notas"),
-        ("en", "delete_msg") => Some("Are you sure you want to delete this notepad? This action cannot be undone."),
-        ("es", "delete_msg") => Some("¿Estás seguro de que quieres eliminar este bloc? Esta acción no se puede deshacer."),
+        ("en", "delete_msg") => {
+            Some("Are you sure you want to delete this notepad? This action cannot be undone.")
+        }
+        ("es", "delete_msg") => Some(
+            "¿Estás seguro de que quieres eliminar este bloc? Esta acción no se puede deshacer.",
+        ),
         ("en", "delete_confirm") => Some("Delete"),
         ("es", "delete_confirm") => Some("Eliminar"),
-        
+
         // Shortcuts modal
         ("en", "shortcuts_title") => Some("Keyboard Shortcuts"),
         ("es", "shortcuts_title") => Some("Atajos de Teclado"),
@@ -101,7 +105,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "sc_help") => Some("Ayuda de Atajos"),
         ("en", "close") => Some("Close"),
         ("es", "close") => Some("Cerrar"),
-        
+
         // Preview modes
         ("en", "prev_editor") => Some("Editor"),
         ("es", "prev_editor") => Some("Editor"),
@@ -109,7 +113,7 @@ pub fn translate_en_es(lang: &str, key: &str) -> Option<&'static str> {
         ("es", "prev_split") => Some("Dividido"),
         ("en", "prev_preview") => Some("Preview"),
         ("es", "prev_preview") => Some("Vista Previa"),
-        
+
         // Toolbar tooltips
         ("en", "tb_bold") => Some("Bold"),
         ("es", "tb_bold") => Some("Negrita"),

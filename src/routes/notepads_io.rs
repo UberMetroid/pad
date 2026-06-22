@@ -6,8 +6,8 @@ use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use std::time::Duration;
 use tokio::fs;
 
-use crate::state::{AppState, NotepadsJson};
 use crate::migration::{get_notepad_file_path, sanitize_filename};
+use crate::state::{AppState, NotepadsJson};
 
 pub const PAGE_HISTORY_COOKIE: &str = "rustpad_page_history";
 
@@ -29,8 +29,8 @@ pub async fn get_notes(
 
     let content = fs::read_to_string(&note_path).await.unwrap_or_default();
 
-    let secure = state.config.base_url.starts_with("https")
-        && state.config.node_env == "production";
+    let secure =
+        state.config.base_url.starts_with("https") && state.config.node_env == "production";
     let history_age_secs = (state.config.page_history_cookie_age_days * 24 * 3600) as u64;
 
     let jar = jar.add(
@@ -104,8 +104,9 @@ pub async fn delete_notepad(
         }
     };
 
-    let mut data: NotepadsJson = serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
-    
+    let mut data: NotepadsJson =
+        serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
+
     let mut notepad_idx = None;
     for (i, n) in data.notepads.iter().enumerate() {
         if n.id == id {
@@ -126,8 +127,13 @@ pub async fn delete_notepad(
     };
 
     let deleted_notepad = data.notepads.remove(idx);
-    
-    if let Err(_) = fs::write(&state.notepads_file, serde_json::to_string_pretty(&data).unwrap()).await {
+
+    if let Err(_) = fs::write(
+        &state.notepads_file,
+        serde_json::to_string_pretty(&data).unwrap(),
+    )
+    .await
+    {
         return (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             axum::Json(serde_json::json!({ "error": "Error saving notepads list" })),
@@ -136,7 +142,7 @@ pub async fn delete_notepad(
     }
 
     let file_path = get_notepad_file_path(&deleted_notepad, &state.data_dir).await;
-    
+
     if fs::metadata(&file_path).await.is_ok() {
         let _ = fs::remove_file(&file_path).await;
     } else {
@@ -147,5 +153,6 @@ pub async fn delete_notepad(
 
     state.index_notepads().await;
 
-    axum::Json(serde_json::json!({ "success": true, "message": "Notepad deleted successfully" })).into_response()
+    axum::Json(serde_json::json!({ "success": true, "message": "Notepad deleted successfully" }))
+        .into_response()
 }

@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Query, State, ConnectInfo},
+    extract::{ConnectInfo, Query, State},
     http::{HeaderMap, Uri},
     response::{IntoResponse, Redirect},
 };
@@ -10,13 +10,15 @@ use std::time::Duration;
 use tokio::fs;
 
 use crate::state::AppState;
-use crate::utils::{get_client_ip, secure_compare, hash_pin};
+use crate::utils::{get_client_ip, hash_pin, secure_compare};
 
 pub const COOKIE_NAME: &str = "rustpad_auth";
 
 // Redirect URL validator helper
 pub fn is_valid_redirect_url(url: &str) -> bool {
-    if url.is_empty() || !url.starts_with('/') || url.starts_with("//") || url.contains('\\') { return false; }
+    if url.is_empty() || !url.starts_with('/') || url.starts_with("//") || url.contains('\\') {
+        return false;
+    }
     let lower = url.to_lowercase();
     !lower.contains("%2f") && !lower.contains("%5c")
 }
@@ -66,7 +68,15 @@ pub async fn serve_root(
         return Redirect::temporary(&format!("/login?redirect={}", redirect_param)).into_response();
     }
 
-    match fs::read_to_string(state.data_dir.parent().unwrap().join("frontend/dist/index.html")).await {
+    match fs::read_to_string(
+        state
+            .data_dir
+            .parent()
+            .unwrap()
+            .join("frontend/dist/index.html"),
+    )
+    .await
+    {
         Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -91,7 +101,15 @@ pub async fn serve_login(
         return Redirect::temporary("/").into_response();
     }
 
-    match fs::read_to_string(state.data_dir.parent().unwrap().join("frontend/dist/index.html")).await {
+    match fs::read_to_string(
+        state
+            .data_dir
+            .parent()
+            .unwrap()
+            .join("frontend/dist/index.html"),
+    )
+    .await
+    {
         Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -117,7 +135,12 @@ pub async fn pin_required(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
 ) -> impl IntoResponse {
-    let ip = get_client_ip(&headers, addr, state.config.trust_proxy, &state.config.trusted_proxies);
+    let ip = get_client_ip(
+        &headers,
+        addr,
+        state.config.trust_proxy,
+        &state.config.trusted_proxies,
+    );
     axum::Json(serde_json::json!({
         "required": state.config.pin.is_some(),
         "length": state.config.pin.as_ref().map_or(0, |p| p.len()),
@@ -197,8 +220,8 @@ pub async fn verify_pin(
         let cookie_max_age = Duration::from_secs((state.config.cookie_max_age_hours * 3600) as u64);
         let same_site = SameSite::Strict;
 
-        let secure = state.config.base_url.starts_with("https")
-            && state.config.node_env == "production";
+        let secure =
+            state.config.base_url.starts_with("https") && state.config.node_env == "production";
 
         let jar = jar.add(
             Cookie::build((COOKIE_NAME, hashed_payload_pin))

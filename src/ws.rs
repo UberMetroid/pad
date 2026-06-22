@@ -1,4 +1,3 @@
-use std::net::SocketAddr;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -8,6 +7,7 @@ use axum::{
     response::IntoResponse,
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
+use std::net::SocketAddr;
 use tokio::sync::mpsc;
 
 use crate::state::AppState;
@@ -19,7 +19,7 @@ pub async fn handle_socket(
     headers: HeaderMap,
 ) -> impl IntoResponse {
     let origin = headers.get("origin").and_then(|h| h.to_str().ok());
-    
+
     let allowed = if state.config.node_env == "development" || state.config.base_url == "*" {
         true
     } else if let Some(o) = origin {
@@ -63,12 +63,19 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                 if let Some(uid) = client_uid {
                     if user_id.is_none() {
                         user_id = Some(uid.to_string());
-                        state.clients.write().await.insert(uid.to_string(), tx.clone());
+                        state
+                            .clients
+                            .write()
+                            .await
+                            .insert(uid.to_string(), tx.clone());
                         println!("User connected via WebSocket: {}", uid);
 
                         let clients_map = state.clients.read().await;
                         let count = clients_map.len();
-                        println!("Broadcasting user_connected for: {}, total count: {}", uid, count);
+                        println!(
+                            "Broadcasting user_connected for: {}, total count: {}",
+                            uid, count
+                        );
                         let connect_msg = serde_json::json!({
                             "type": "user_connected",
                             "userId": uid,
@@ -91,7 +98,10 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                         let server_version = history.len();
 
                         if let Some(op_obj) = op.as_object_mut() {
-                            op_obj.insert("serverVersion".to_string(), serde_json::json!(server_version));
+                            op_obj.insert(
+                                "serverVersion".to_string(),
+                                serde_json::json!(server_version),
+                            );
                         }
                         history.push(op.clone());
 
@@ -127,7 +137,10 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                 } else if msg_type == Some("cursor") && notepad_id.is_some() {
                     let nid = notepad_id.unwrap();
                     let color = data.get("color").and_then(|v| v.as_str()).unwrap_or("");
-                    let position = data.get("position").cloned().unwrap_or(serde_json::Value::Null);
+                    let position = data
+                        .get("position")
+                        .cloned()
+                        .unwrap_or(serde_json::Value::Null);
 
                     let clients_map = state.clients.read().await;
                     let broadcast_msg = serde_json::json!({

@@ -17,7 +17,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "logout") => Some("Déconnexion"),
         ("de", "online") => Some("online"),
         ("fr", "online") => Some("en ligne"),
-        
+
         // Editor
         ("de", "saving") => Some("Speichern..."),
         ("fr", "saving") => Some("Enregistrement..."),
@@ -35,7 +35,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "offline") => Some("Hors ligne"),
         ("de", "placeholder") => Some("Schreiben Sie Ihr Markdown hier..."),
         ("fr", "placeholder") => Some("Commencez à écrire votre markdown ici..."),
-        
+
         // Settings modal
         ("de", "settings_title") => Some("Einstellungen"),
         ("fr", "settings_title") => Some("Paramètres"),
@@ -49,7 +49,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "settings_lang") => Some("Langue de l'application :"),
         ("de", "settings_save") => Some("Einstellungen speichern"),
         ("fr", "settings_save") => Some("Enregistrer les paramètres"),
-        
+
         // Search modal
         ("de", "search_title") => Some("Notizblöcke durchsuchen"),
         ("fr", "search_title") => Some("Recherche de blocs-notes"),
@@ -57,7 +57,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "search_placeholder") => Some("Saisir titre ou contenu à rechercher..."),
         ("de", "search_no_results") => Some("No matching notepads found."),
         ("fr", "search_no_results") => Some("Aucun bloc-notes trouvé."),
-        
+
         // Login
         ("de", "login_title") => Some("RustPad"),
         ("fr", "login_title") => Some("RustPad"),
@@ -67,7 +67,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "login_prompt") => Some("Entrez le code PIN d'authentification"),
         ("de", "login_btn") => Some("Unlock"),
         ("fr", "login_btn") => Some("Unlock"),
-        
+
         // Rename modal
         ("de", "rename_title") => Some("Notizblock umbenennen"),
         ("fr", "rename_title") => Some("Renommer le bloc-notes"),
@@ -77,7 +77,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "cancel") => Some("Annuler"),
         ("de", "reset") => Some("Zurücksetzen"),
         ("fr", "reset") => Some("Réinitialiser"),
-        
+
         // Delete modal
         ("de", "delete_title") => Some("Notizblock löschen"),
         ("fr", "delete_title") => Some("Supprimer le bloc-notes"),
@@ -85,7 +85,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "delete_msg") => Some("Voulez-vous vraiment supprimer ce bloc-notes ? Cette action est irréversible."),
         ("de", "delete_confirm") => Some("Löschen"),
         ("fr", "delete_confirm") => Some("Supprimer"),
-        
+
         // Shortcuts modal
         ("de", "shortcuts_title") => Some("Tastaturkürzel"),
         ("fr", "shortcuts_title") => Some("Raccourcis clavier"),
@@ -101,7 +101,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "sc_help") => Some("Aide sur les raccourcis"),
         ("de", "close") => Some("Schließen"),
         ("fr", "close") => Some("Fermer"),
-        
+
         // Preview modes
         ("de", "prev_editor") => Some("Editor"),
         ("fr", "prev_editor") => Some("Éditeur"),
@@ -109,7 +109,7 @@ pub fn translate_de_fr(lang: &str, key: &str) -> Option<&'static str> {
         ("fr", "prev_split") => Some("Divisé"),
         ("de", "prev_preview") => Some("Vorschau"),
         ("fr", "prev_preview") => Some("Aperçu"),
-        
+
         // Toolbar tooltips
         ("de", "tb_bold") => Some("Fett"),
         ("fr", "tb_bold") => Some("Gras"),

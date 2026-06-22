@@ -61,6 +61,43 @@ docker compose up -d
 
 ---
 
+## Local Development
+
+To build and run the application locally outside of Docker, you must have the Rust toolchain installed.
+
+### Prerequisites
+
+Install the WebAssembly target and `trunk` (the WASM asset bundler):
+
+```bash
+# Install WASM target
+rustup target add wasm32-unknown-unknown
+
+# Install Trunk
+cargo install --locked trunk
+```
+
+### Build Steps
+
+1. **Build the Yew Frontend**:
+   Build the static assets using Trunk:
+   ```bash
+   cd frontend
+   trunk build --release
+   cd ..
+   ```
+   This generates the optimized WASM/JS bundle inside `frontend/dist/`.
+
+2. **Run the Axum Backend**:
+   Build and start the backend server, which serves the frontend static directory:
+   ```bash
+   cargo run --release
+   ```
+
+The application will start listening on port 3000: `http://localhost:3000`. Local configurations can be set by editing the `.env` file in the root directory.
+
+---
+
 ## Configuration
 
 RustPad can be configured via environment variables:

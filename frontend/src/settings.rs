@@ -1,6 +1,6 @@
-use yew::prelude::*;
-use crate::types::Settings;
 use crate::services::StorageService;
+use crate::types::Settings;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct SettingsModalProps {
@@ -111,21 +111,21 @@ pub fn settings_modal(props: &SettingsModalProps) -> Html {
                 <div class="settings-form">
                     <label class="settings-label">
                         {locale.t("settings_save_interval")}
-                        <input 
-                            id="autosave-status-interval-input" 
-                            class="modal-input" 
-                            type="number" 
-                            min="0" 
-                            value={settings.save_status_message_interval.to_string()} 
+                        <input
+                            id="autosave-status-interval-input"
+                            class="modal-input"
+                            type="number"
+                            min="0"
+                            value={settings.save_status_message_interval.to_string()}
                             oninput={on_interval_input}
-                            placeholder="ms" 
+                            placeholder="ms"
                         />
                     </label>
                     <label class="settings-label">
                         {"Enable Remote Connection Messages:"}
-                        <input 
-                            type="checkbox" 
-                            id="settings-remote-connection-messages" 
+                        <input
+                            type="checkbox"
+                            id="settings-remote-connection-messages"
                             checked={settings.enable_remote_connection_messages}
                             onchange={on_remote_messages_change}
                         />
@@ -147,30 +147,30 @@ pub fn settings_modal(props: &SettingsModalProps) -> Html {
                         {locale.t("settings_preview")}
                         <div style="margin-top: 0.5rem; display: flex; gap: 1rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input 
-                                    type="radio" 
-                                    name="default-preview-mode" 
-                                    value="off" 
+                                <input
+                                    type="radio"
+                                    name="default-preview-mode"
+                                    value="off"
                                     checked={settings.default_markdown_preview_mode == "off"}
                                     onclick={let m_c = on_preview_mode_change.clone(); move |_| m_c.emit("off".to_string())}
                                 />
                                 {locale.t("prev_editor")}
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input 
-                                    type="radio" 
-                                    name="default-preview-mode" 
-                                    value="split" 
+                                <input
+                                    type="radio"
+                                    name="default-preview-mode"
+                                    value="split"
                                     checked={settings.default_markdown_preview_mode == "split"}
                                     onclick={let m_c = on_preview_mode_change.clone(); move |_| m_c.emit("split".to_string())}
                                 />
                                 {locale.t("prev_split")}
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input 
-                                    type="radio" 
-                                    name="default-preview-mode" 
-                                    value="preview-only" 
+                                <input
+                                    type="radio"
+                                    name="default-preview-mode"
+                                    value="preview-only"
                                     checked={settings.default_markdown_preview_mode == "preview-only"}
                                     onclick={let m_c = on_preview_mode_change.clone(); move |_| m_c.emit("preview-only".to_string())}
                                 />
@@ -180,9 +180,9 @@ pub fn settings_modal(props: &SettingsModalProps) -> Html {
                     </label>
                     <label class="settings-label">
                         {locale.t("settings_disable_print")}
-                        <input 
-                            type="checkbox" 
-                            id="settings-disable-print-expand" 
+                        <input
+                            type="checkbox"
+                            id="settings-disable-print-expand"
                             checked={settings.disable_print_expand}
                             onchange={on_disable_print_expand_change}
                         />

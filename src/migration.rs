@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tokio::fs;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Notepad {
@@ -78,7 +78,10 @@ pub async fn migrate_all_notepads_to_name_based_files(notepads: &[Notepad], data
     }
 
     if migrated_count > 0 {
-        println!("Successfully migrated {} notepad files to name-based filenames", migrated_count);
+        println!(
+            "Successfully migrated {} notepad files to name-based filenames",
+            migrated_count
+        );
     } else {
         println!("No notepad files needed migration");
     }

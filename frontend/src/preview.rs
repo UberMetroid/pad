@@ -1,6 +1,6 @@
-use yew::prelude::*;
-use pulldown_cmark::{Parser, Options, html};
+use pulldown_cmark::{html, Options, Parser};
 use wasm_bindgen::JsCast;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct PreviewProps {
@@ -94,7 +94,9 @@ pub fn preview(props: &PreviewProps) -> Html {
             if let Some(w) = web_sys::window() {
                 if let Ok(hljs) = js_sys::Reflect::get(&w, &"hljs".into()) {
                     if !hljs.is_undefined() && !hljs.is_null() {
-                        if let Ok(highlight_all) = js_sys::Reflect::get(&hljs, &"highlightAll".into()) {
+                        if let Ok(highlight_all) =
+                            js_sys::Reflect::get(&hljs, &"highlightAll".into())
+                        {
                             if let Some(func) = highlight_all.dyn_ref::<js_sys::Function>() {
                                 let _ = func.call0(&hljs);
                             }

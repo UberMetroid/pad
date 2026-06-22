@@ -1,7 +1,7 @@
-use yew::prelude::*;
 use crate::types::Notepad;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct HeaderProps {
@@ -38,9 +38,15 @@ pub fn header(props: &HeaderProps) -> Html {
                     }
                 }
             });
-            let _ = window.add_event_listener_with_callback("rustpad:peer_count", callback.as_ref().unchecked_ref());
+            let _ = window.add_event_listener_with_callback(
+                "rustpad:peer_count",
+                callback.as_ref().unchecked_ref(),
+            );
             move || {
-                let _ = window.remove_event_listener_with_callback("rustpad:peer_count", callback.as_ref().unchecked_ref());
+                let _ = window.remove_event_listener_with_callback(
+                    "rustpad:peer_count",
+                    callback.as_ref().unchecked_ref(),
+                );
             }
         });
     }
@@ -63,7 +69,7 @@ pub fn header(props: &HeaderProps) -> Html {
             <svg id="sun-icon" class="sun" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" /></svg>
         },
     };
- 
+
     let peer_count_val = *peer_count;
     let peers_badge = if peer_count_val > 1 {
         html! {
@@ -75,7 +81,7 @@ pub fn header(props: &HeaderProps) -> Html {
     } else {
         html! {}
     };
- 
+
     html! {
         <header>
             <div class="notepad-controls">

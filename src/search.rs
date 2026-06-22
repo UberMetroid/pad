@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use tokio::fs;
-use serde::{Serialize, Deserialize};
 
-use crate::state::AppStateInner;
 use crate::migration::get_notepad_file_path;
+use crate::state::AppStateInner;
 
 #[derive(Debug, Clone)]
 pub struct IndexedItem {
@@ -27,7 +27,7 @@ fn fuzzy_match_subsequence(text: &str, query: &str) -> Option<i64> {
     let mut text_chars = text.chars();
     let mut score = 0i64;
     let mut last_match_idx = 0usize;
-    
+
     for q_char in query.chars() {
         let mut found = false;
         let mut idx_in_text = last_match_idx;
@@ -52,7 +52,7 @@ impl AppStateInner {
     pub async fn index_notepads(&self) {
         println!("Indexing notepads...");
         let list = self.load_notepads_list().await;
-        
+
         let mut items = Vec::new();
         for notepad in &list {
             let file_path = get_notepad_file_path(notepad, &self.data_dir).await;
@@ -70,7 +70,10 @@ impl AppStateInner {
 
         *self.notepads.write().await = list;
         *self.index_items.write().await = items;
-        println!("Indexing complete. Notepads indexed: {}", self.notepads.read().await.len());
+        println!(
+            "Indexing complete. Notepads indexed: {}",
+            self.notepads.read().await.len()
+        );
     }
 
     pub async fn search_notepads(&self, query: &str) -> Vec<SearchResult> {
@@ -107,11 +110,15 @@ impl AppStateInner {
 
                 if !is_filename_match {
                     r#match = format!("content in {}", name_truncated);
-                    
+
                     if let Some(match_byte_idx) = item.content_lower.find(&query_lower) {
-                        let char_boundaries: Vec<(usize, char)> = item.content.char_indices().collect();
-                        
-                        if let Some(match_char_idx) = char_boundaries.iter().position(|&(b_idx, _)| b_idx == match_byte_idx) {
+                        let char_boundaries: Vec<(usize, char)> =
+                            item.content.char_indices().collect();
+
+                        if let Some(match_char_idx) = char_boundaries
+                            .iter()
+                            .position(|&(b_idx, _)| b_idx == match_byte_idx)
+                        {
                             let mut start_char_idx = match_char_idx;
                             let mut space_count = 0;
                             while start_char_idx > 0 && space_count < 3 {
@@ -122,7 +129,9 @@ impl AppStateInner {
                             }
 
                             let mut end_char_idx = match_char_idx + query.chars().count();
-                            while end_char_idx < char_boundaries.len() && (end_char_idx - start_char_idx) < 25 {
+                            while end_char_idx < char_boundaries.len()
+                                && (end_char_idx - start_char_idx) < 25
+                            {
                                 end_char_idx += 1;
                             }
 
@@ -133,7 +142,9 @@ impl AppStateInner {
                                 item.content.len()
                             };
 
-                            let snippet = item.content[start_byte_idx..end_byte_idx].trim().to_string();
+                            let snippet = item.content[start_byte_idx..end_byte_idx]
+                                .trim()
+                                .to_string();
                             truncated_content = if start_char_idx > 0 {
                                 format!("...{}", snippet)
                             } else {
@@ -154,7 +165,11 @@ impl AppStateInner {
 
                 SearchResult {
                     id: item.id.clone(),
-                    name: if is_filename_match { name_truncated } else { truncated_content },
+                    name: if is_filename_match {
+                        name_truncated
+                    } else {
+                        truncated_content
+                    },
                     r#match,
                 }
             })

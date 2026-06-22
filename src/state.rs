@@ -1,15 +1,15 @@
+use axum::extract::ws::Message;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::RwLock;
 use tokio::fs;
-use axum::extract::ws::Message;
 use tokio::sync::mpsc::UnboundedSender;
-use serde::{Serialize, Deserialize};
+use tokio::sync::RwLock;
 
-use crate::migration::{Notepad, sanitize_filename, migrate_default_notepad};
+use crate::migration::{migrate_default_notepad, sanitize_filename, Notepad};
 use crate::search::IndexedItem;
 
 #[derive(Debug, Clone)]
@@ -101,9 +101,10 @@ impl AppStateInner {
 
     pub async fn get_notepads_from_dir(&self) -> Result<Vec<Notepad>, std::io::Error> {
         self.ensure_data_dir().await?;
-        
+
         let file_content = fs::read_to_string(&self.notepads_file).await?;
-        let mut data: NotepadsJson = serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
+        let mut data: NotepadsJson =
+            serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
 
         let mut read_dir = fs::read_dir(&self.data_dir).await?;
         let mut txt_files = Vec::new();
@@ -121,9 +122,10 @@ impl AppStateInner {
         let mut new_notepads = Vec::new();
         for txt_file in txt_files {
             let matches_id = data.notepads.iter().any(|n| n.id == txt_file);
-            let matches_sanitized_name = data.notepads.iter().any(|n| {
-                sanitize_filename(&n.name) == txt_file
-            });
+            let matches_sanitized_name = data
+                .notepads
+                .iter()
+                .any(|n| sanitize_filename(&n.name) == txt_file);
 
             if !matches_id && !matches_sanitized_name {
                 let unique_name = self.generate_unique_name(&txt_file, &data.notepads);
@@ -138,7 +140,14 @@ impl AppStateInner {
             data.notepads.extend(new_notepads.clone());
             let content = serde_json::to_string_pretty(&data)?;
             fs::write(&self.notepads_file, content).await?;
-            println!("Added new notepads: {}", data.notepads.iter().map(|n| n.id.as_str()).collect::<Vec<_>>().join(", "));
+            println!(
+                "Added new notepads: {}",
+                data.notepads
+                    .iter()
+                    .map(|n| n.id.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
         }
 
         Ok(data.notepads)

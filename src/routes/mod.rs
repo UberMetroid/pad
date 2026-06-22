@@ -2,9 +2,11 @@ pub mod auth;
 pub mod notepads_crud;
 pub mod notepads_io;
 
-pub use auth::{serve_root, serve_login, verify_pin, pin_required, get_config, require_pin, logout};
-pub use notepads_crud::{get_notepads, create_notepad, rename_notepad};
-pub use notepads_io::{get_notes, save_notes, delete_notepad};
+pub use auth::{
+    get_config, logout, pin_required, require_pin, serve_login, serve_root, verify_pin,
+};
+pub use notepads_crud::{create_notepad, get_notepads, rename_notepad};
+pub use notepads_io::{delete_notepad, get_notes, save_notes};
 
 use axum::{
     extract::{Query, State},
@@ -30,9 +32,13 @@ pub async fn search_api(
     let page = params.page.unwrap_or(1);
 
     let results = state.search_notepads(&query).await;
-    let page_size = results.len(); 
-    
-    let total_pages = if page_size == 0 { 0 } else { (results.len() + page_size - 1) / page_size };
+    let page_size = results.len();
+
+    let total_pages = if page_size == 0 {
+        0
+    } else {
+        (results.len() + page_size - 1) / page_size
+    };
     let paginated_results = if page_size == 0 {
         vec![]
     } else {
@@ -54,7 +60,11 @@ pub async fn search_api(
 
 // Service worker serving
 pub async fn serve_service_worker(State(state): State<AppState>) -> impl IntoResponse {
-    let sw_path = state.data_dir.parent().unwrap().join("frontend/dist/service-worker.js");
+    let sw_path = state
+        .data_dir
+        .parent()
+        .unwrap()
+        .join("frontend/dist/service-worker.js");
     match fs::read_to_string(&sw_path).await {
         Ok(content) => {
             let re = regex::Regex::new(r#"let APP_VERSION = ".*?";"#).unwrap();
@@ -85,18 +95,18 @@ pub async fn serve_service_worker(State(state): State<AppState>) -> impl IntoRes
 
 // Health check endpoint
 pub async fn health_check() -> impl IntoResponse {
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
     axum::Json(serde_json::json!({
         "status": "ok",
-        "timestamp": chrono::Utc::now().to_rfc3339()
+        "timestamp": secs
     }))
 }
 
 // Recursive file scanner for Web App/Assets manifest generation
-fn get_files(
-    dir: &StdPath,
-    base_path: &str,
-    files: &mut Vec<String>,
-) -> std::io::Result<()> {
+fn get_files(dir: &StdPath, base_path: &str, files: &mut Vec<String>) -> std::io::Result<()> {
     if dir.is_dir() {
         for entry in std::fs::read_dir(dir)? {
             let entry = entry?;
@@ -128,7 +138,7 @@ pub fn generate_pwa_manifest(site_title: &str, public_dir: &StdPath) -> std::io:
 
     let mut files = Vec::new();
     get_files(public_dir, "", &mut files)?;
-    
+
     let json_files = serde_json::to_string_pretty(&files)?;
     std::fs::write(assets_dir.join("asset-manifest.json"), json_files)?;
 
@@ -156,7 +166,7 @@ pub fn generate_pwa_manifest(site_title: &str, public_dir: &StdPath) -> std::io:
     });
     let json_pwa = serde_json::to_string_pretty(&pwa_manifest)?;
     std::fs::write(assets_dir.join("manifest.json"), json_pwa)?;
-    
+
     println!("Asset and PWA manifests generated dynamically!");
     Ok(())
 }

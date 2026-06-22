@@ -1,7 +1,7 @@
-use std::net::{IpAddr, SocketAddr};
 use axum::http::HeaderMap;
 use ipnet::IpNet;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
+use std::net::{IpAddr, SocketAddr};
 
 /// Hash a string slice using SHA-256 and return its hex representation
 pub fn hash_pin(pin: &str) -> String {

@@ -1,7 +1,7 @@
-use yew::prelude::*;
-use wasm_bindgen_futures::spawn_local;
 use crate::services::ApiService;
 use crate::types::SearchItem;
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct SearchModalProps {
@@ -87,15 +87,15 @@ pub fn search_modal(props: &SearchModalProps) -> Html {
     html! {
         <div id="search-modal" class="modal visible" onclick={on_close.clone()}>
             <div class="search-modal-content" onclick={|e: MouseEvent| e.stop_propagation()}>
-                <input 
-                    type="text" 
-                    id="search-box" 
+                <input
+                    type="text"
+                    id="search-box"
                     ref={search_input_ref}
-                    placeholder={locale.t("search_placeholder")} 
+                    placeholder={locale.t("search_placeholder")}
                     value={(*query).clone()}
                     oninput={on_input}
                     onkeydown={on_keydown}
-                    autofocus=true 
+                    autofocus=true
                 />
                 <ul id="search-results">
                     {
@@ -106,14 +106,14 @@ pub fn search_modal(props: &SearchModalProps) -> Html {
                             let query_state = query.clone();
                             let results_state = results.clone();
                             let q_val = (*query).clone();
-                            
+
                             let on_click = Callback::from(move |_| {
                                 on_select_cb.emit(item_id.clone());
                                 query_state.set("".to_string());
                                 results_state.set(vec![]);
                                 on_close_cb.emit(());
                             });
-                            
+
                             html! {
                                 <li onclick={on_click} style="cursor: pointer;">
                                     <div>{highlight_query(&item.name, &q_val)}</div>

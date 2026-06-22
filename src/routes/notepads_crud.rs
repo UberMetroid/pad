@@ -6,8 +6,8 @@ use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use std::time::Duration;
 use tokio::fs;
 
+use crate::migration::{get_notepad_file_path, sanitize_filename, Notepad};
 use crate::state::{AppState, NotepadsJson};
-use crate::migration::{get_notepad_file_path, Notepad, sanitize_filename};
 
 pub const PAGE_HISTORY_COOKIE: &str = "rustpad_page_history";
 
@@ -26,10 +26,7 @@ pub async fn get_notepads(jar: CookieJar, State(state): State<AppState>) -> impl
 }
 
 // API: Create new notepad
-pub async fn create_notepad(
-    jar: CookieJar,
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn create_notepad(jar: CookieJar, State(state): State<AppState>) -> impl IntoResponse {
     let file_content = match fs::read_to_string(&state.notepads_file).await {
         Ok(c) => c,
         Err(_) => {
@@ -41,9 +38,14 @@ pub async fn create_notepad(
         }
     };
 
-    let mut data: NotepadsJson = serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
-    
-    let id = chrono::Utc::now().timestamp_millis().to_string();
+    let mut data: NotepadsJson =
+        serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
+
+    let id = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+        .to_string();
     let desired_name = format!("Notepad {}", data.notepads.len() + 1);
     let unique_name = state.generate_unique_name(&desired_name, &data.notepads);
 
@@ -73,8 +75,8 @@ pub async fn create_notepad(
 
     state.index_notepads().await;
 
-    let secure = state.config.base_url.starts_with("https")
-        && state.config.node_env == "production";
+    let secure =
+        state.config.base_url.starts_with("https") && state.config.node_env == "production";
     let history_age_secs = (state.config.page_history_cookie_age_days * 24 * 3600) as u64;
 
     let jar = jar.add(
@@ -112,8 +114,9 @@ pub async fn rename_notepad(
         }
     };
 
-    let mut data: NotepadsJson = serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
-    
+    let mut data: NotepadsJson =
+        serde_json::from_str(&file_content).unwrap_or(NotepadsJson { notepads: vec![] });
+
     let mut notepad_idx = None;
     for (i, n) in data.notepads.iter().enumerate() {
         if n.id == id {

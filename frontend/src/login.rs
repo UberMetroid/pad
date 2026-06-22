@@ -1,6 +1,6 @@
-use yew::prelude::*;
-use wasm_bindgen_futures::spawn_local;
 use crate::services::{ApiService, StorageService};
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct LoginProps {
@@ -74,7 +74,7 @@ pub fn login(props: &LoginProps) -> Html {
         let on_success = props.on_login_success.clone();
         let error_msg = error_msg.clone();
         let is_locked = is_locked.clone();
-        
+
         Callback::from(move |e: InputEvent| {
             let input: web_sys::HtmlInputElement = e.target_unchecked_into();
             let val = input.value();
@@ -84,13 +84,13 @@ pub fn login(props: &LoginProps) -> Html {
             if filtered.len() <= pin_len {
                 pin_input.set(filtered.clone());
                 error_msg.set("".to_string());
-                
+
                 if filtered.len() == pin_len {
                     let on_success = on_success.clone();
                     let error_msg = error_msg.clone();
                     let is_locked = is_locked.clone();
                     let val_clone = filtered.clone();
-                    
+
                     spawn_local(async move {
                         if let Ok(res) = ApiService::verify_pin(&val_clone).await {
                             if res.success {
@@ -118,7 +118,7 @@ pub fn login(props: &LoginProps) -> Html {
         let on_success = props.on_login_success.clone();
         let error_msg = error_msg.clone();
         let is_locked = is_locked.clone();
-        
+
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             let val = (*pin_input).clone();
@@ -178,10 +178,10 @@ pub fn login(props: &LoginProps) -> Html {
                 </div>
                 <form id="pin-form" onsubmit={on_submit}>
                     <div class="pin-wrapper">
-                        <input 
+                        <input
                             ref={input_ref.clone()}
-                            type="password" 
-                            class="pin-input-field" 
+                            type="password"
+                            class="pin-input-field"
                             value={(*pin_input).clone()}
                             oninput={on_input}
                             disabled={*is_locked}

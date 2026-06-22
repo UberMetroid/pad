@@ -53,9 +53,9 @@ pub fn rename_modal(props: &RenameModalProps) -> Html {
         <div id="rename-modal" class="modal visible">
             <div class="modal-content">
                 <h2>{locale.t("rename_title")}</h2>
-                <input 
-                    type="text" 
-                    class="modal-input" 
+                <input
+                    type="text"
+                    class="modal-input"
                     value={(*rename_value).clone()}
                     oninput={on_input}
                 />

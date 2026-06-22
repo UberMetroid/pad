@@ -1,6 +1,6 @@
 use axum::{
-    routing::{get, post, put},
     middleware,
+    routing::{get, post, put},
     Router,
 };
 use std::collections::HashMap;
@@ -13,17 +13,17 @@ use tower_http::services::ServeDir;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod migration;
+mod routes;
+mod search;
 mod state;
 mod utils;
 mod ws;
-mod search;
-mod routes;
 
 use migration::migrate_all_notepads_to_name_based_files;
+use routes::*;
 use state::{AppConfig, AppState, AppStateInner};
 use utils::parse_trusted_proxies;
 use ws::handle_socket;
-use routes::*;
 
 #[tokio::main]
 async fn main() {
@@ -43,9 +43,10 @@ async fn main() {
         .or_else(|_| std::env::var("DUMBPAD_PIN"))
         .ok()
         .filter(|s| !s.is_empty());
-    
+
     // Validate PIN format
-    let pin = pin.filter(|p| p.len() >= 4 && p.len() <= 10 && p.chars().all(|c| c.is_ascii_digit()));
+    let pin =
+        pin.filter(|p| p.len() >= 4 && p.len() <= 10 && p.chars().all(|c| c.is_ascii_digit()));
 
     let cookie_max_age_hours = std::env::var("COOKIE_MAX_AGE")
         .ok()
@@ -63,26 +64,48 @@ async fn main() {
         .ok()
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(15);
-    
-    let trust_proxy = std::env::var("TRUST_PROXY").map(|s| s == "true").unwrap_or(false);
+
+    let trust_proxy = std::env::var("TRUST_PROXY")
+        .map(|s| s == "true")
+        .unwrap_or(false);
     let trusted_proxy_ips_raw = std::env::var("TRUSTED_PROXY_IPS").unwrap_or_default();
     let mut trusted_proxies = parse_trusted_proxies(&trusted_proxy_ips_raw);
 
     if trust_proxy && trusted_proxy_ips_raw.trim().is_empty() {
         eprintln!("CRITICAL WARNING: TRUST_PROXY=true but TRUSTED_PROXY_IPS is not set or empty.");
-        eprintln!("Trust proxy is disabled for security. Set TRUSTED_PROXY_IPS to enable proxy trust.");
+        eprintln!(
+            "Trust proxy is disabled for security. Set TRUSTED_PROXY_IPS to enable proxy trust."
+        );
         trusted_proxies.clear();
     }
 
     let highlight_languages_raw = std::env::var("HIGHLIGHT_LANGUAGES").unwrap_or_default();
     let highlight_languages: Vec<String> = if highlight_languages_raw.trim().is_empty() {
-        vec!["javascript", "python", "bash", "css", "html", "rust", "json", "markdown", "typescript", "yaml"]
-            .iter().map(|&s| s.to_string()).collect()
+        vec![
+            "javascript",
+            "python",
+            "bash",
+            "css",
+            "html",
+            "rust",
+            "json",
+            "markdown",
+            "typescript",
+            "yaml",
+        ]
+        .iter()
+        .map(|&s| s.to_string())
+        .collect()
     } else {
-        highlight_languages_raw.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
+        highlight_languages_raw
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect()
     };
 
-    let base_url = std::env::var("BASE_URL").unwrap_or_else(|_| format!("http://localhost:{}", port));
+    let base_url =
+        std::env::var("BASE_URL").unwrap_or_else(|_| format!("http://localhost:{}", port));
     let node_env = std::env::var("NODE_ENV").unwrap_or_else(|_| "development".to_string());
     let version = env!("CARGO_PKG_VERSION").to_string();
 
@@ -135,7 +158,8 @@ async fn main() {
 
     // Start directory file watcher
     let state_clone = state.clone();
-    let (watcher_tx, mut watcher_rx) = tokio::sync::mpsc::channel::<notify::Result<notify::Event>>(100);
+    let (watcher_tx, mut watcher_rx) =
+        tokio::sync::mpsc::channel::<notify::Result<notify::Event>>(100);
     let mut watcher = notify::RecommendedWatcher::new(
         move |res| {
             let _ = watcher_tx.blocking_send(res);
@@ -155,7 +179,8 @@ async fn main() {
                 let mut should_reindex = false;
                 for path in event.paths {
                     if let Some(ext) = path.extension() {
-                        if ext == "txt" || path.file_name().map_or(false, |f| f == "notepads.json") {
+                        if ext == "txt" || path.file_name().map_or(false, |f| f == "notepads.json")
+                        {
                             should_reindex = true;
                             break;
                         }
@@ -203,7 +228,7 @@ async fn main() {
         .fallback_service(
             ServeDir::new("frontend/dist")
                 .precompressed_br()
-                .precompressed_gzip()
+                .precompressed_gzip(),
         )
         .layer(cors)
         .with_state(state.clone());

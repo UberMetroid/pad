@@ -17,7 +17,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "logout") => Some("退出登录"),
         ("ja", "online") => Some("オンライン"),
         ("zh", "online") => Some("在线"),
-        
+
         // Editor
         ("ja", "saving") => Some("保存中..."),
         ("zh", "saving") => Some("保存中..."),
@@ -35,7 +35,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "offline") => Some("离线"),
         ("ja", "placeholder") => Some("ここにマークダウンを入力してください..."),
         ("zh", "placeholder") => Some("在此输入 Markdown..."),
-        
+
         // Settings modal
         ("ja", "settings_title") => Some("設定"),
         ("zh", "settings_title") => Some("设置"),
@@ -49,7 +49,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "settings_lang") => Some("应用语言:"),
         ("ja", "settings_save") => Some("設定を保存"),
         ("zh", "settings_save") => Some("保存设置"),
-        
+
         // Search modal
         ("ja", "search_title") => Some("メモのあいまい検索"),
         ("zh", "search_title") => Some("模糊搜索便签"),
@@ -57,7 +57,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "search_placeholder") => Some("输入标题或内容以搜索..."),
         ("ja", "search_no_results") => Some("No matching notepads found."),
         ("zh", "search_no_results") => Some("无匹配结果。"),
-        
+
         // Login
         ("ja", "login_title") => Some("RustPad"),
         ("zh", "login_title") => Some("RustPad"),
@@ -67,7 +67,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "login_prompt") => Some("输入身份验证密码以访问"),
         ("ja", "login_btn") => Some("Unlock"),
         ("zh", "login_btn") => Some("Unlock"),
-        
+
         // Rename modal
         ("ja", "rename_title") => Some("メモの名前変更"),
         ("zh", "rename_title") => Some("重命名便签"),
@@ -77,15 +77,17 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "cancel") => Some("取消"),
         ("ja", "reset") => Some("リセット"),
         ("zh", "reset") => Some("重置"),
-        
+
         // Delete modal
         ("ja", "delete_title") => Some("メモの削除"),
         ("zh", "delete_title") => Some("删除便签"),
-        ("ja", "delete_msg") => Some("このメモを削除してもよろしいですか？この操作は取り消せません。"),
+        ("ja", "delete_msg") => {
+            Some("このメモを削除してもよろしいですか？この操作は取り消せません。")
+        }
         ("zh", "delete_msg") => Some("确定要删除此便签吗？此操作无法撤销。"),
         ("ja", "delete_confirm") => Some("削除"),
         ("zh", "delete_confirm") => Some("删除"),
-        
+
         // Shortcuts modal
         ("ja", "shortcuts_title") => Some("キーボードショートカット"),
         ("zh", "shortcuts_title") => Some("键盘快捷键"),
@@ -101,7 +103,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "sc_help") => Some("快捷键帮助"),
         ("ja", "close") => Some("閉じる"),
         ("zh", "close") => Some("关闭"),
-        
+
         // Preview modes
         ("ja", "prev_editor") => Some("エディタ"),
         ("zh", "prev_editor") => Some("编辑器"),
@@ -109,7 +111,7 @@ pub fn translate_ja_zh(lang: &str, key: &str) -> Option<&'static str> {
         ("zh", "prev_split") => Some("分栏"),
         ("ja", "prev_preview") => Some("プレビュー"),
         ("zh", "prev_preview") => Some("预览"),
-        
+
         // Toolbar tooltips
         ("ja", "tb_bold") => Some("太字"),
         ("zh", "tb_bold") => Some("加粗"),

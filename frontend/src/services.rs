@@ -1,5 +1,5 @@
-use gloo_net::http::Request;
 use crate::types::{Notepad, SearchItem, Settings};
+use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
 
 pub struct StorageService;
@@ -11,8 +11,12 @@ impl StorageService {
 
     pub fn get_theme() -> String {
         Self::local_storage()
-            .and_then(|s| s.get_item("rustpad_theme").ok().flatten()
-                .or_else(|| s.get_item("dumbpad_theme").ok().flatten()))
+            .and_then(|s| {
+                s.get_item("rustpad_theme")
+                    .ok()
+                    .flatten()
+                    .or_else(|| s.get_item("dumbpad_theme").ok().flatten())
+            })
             .unwrap_or_else(|| "light".to_string())
     }
 
@@ -24,8 +28,12 @@ impl StorageService {
 
     pub fn get_settings() -> Settings {
         Self::local_storage()
-            .and_then(|s| s.get_item("rustpad_settings").ok().flatten()
-                .or_else(|| s.get_item("dumbpad_settings").ok().flatten()))
+            .and_then(|s| {
+                s.get_item("rustpad_settings")
+                    .ok()
+                    .flatten()
+                    .or_else(|| s.get_item("dumbpad_settings").ok().flatten())
+            })
             .and_then(|val| serde_json::from_str(&val).ok())
             .unwrap_or_default()
     }
@@ -61,8 +69,6 @@ pub struct SaveNotesPayload {
 pub struct RenameNotepadPayload {
     pub name: String,
 }
-
-
 
 #[derive(Deserialize)]
 pub struct PinRequiredResponse {
@@ -104,7 +110,9 @@ impl ApiService {
     }
 
     pub async fn verify_pin(pin: &str) -> Result<VerifyPinResponse, gloo_net::Error> {
-        let payload = VerifyPinPayload { pin: pin.to_string() };
+        let payload = VerifyPinPayload {
+            pin: pin.to_string(),
+        };
         let response = Request::post("/api/verify-pin")
             .json(&payload)?
             .send()
@@ -112,7 +120,10 @@ impl ApiService {
         if response.status() == 401 || response.status() == 429 || response.status() == 400 {
             if let Ok(err_res) = response.json::<serde_json::Value>().await {
                 if let Some(err_str) = err_res.get("error").and_then(|v| v.as_str()) {
-                    return Ok(VerifyPinResponse { success: false, error: Some(err_str.to_string()) });
+                    return Ok(VerifyPinResponse {
+                        success: false,
+                        error: Some(err_str.to_string()),
+                    });
                 }
             }
         }
@@ -120,9 +131,7 @@ impl ApiService {
     }
 
     pub async fn logout() -> Result<(), gloo_net::Error> {
-        Request::post("/api/logout")
-            .send()
-            .await?;
+        Request::post("/api/logout").send().await?;
         Ok(())
     }
 
@@ -151,7 +160,9 @@ impl ApiService {
     }
 
     pub async fn save_notes(id: &str, content: &str) -> Result<(), gloo_net::Error> {
-        let payload = SaveNotesPayload { content: content.to_string() };
+        let payload = SaveNotesPayload {
+            content: content.to_string(),
+        };
         Request::post(&format!("/api/notes/{}", id))
             .json(&payload)?
             .send()
@@ -168,7 +179,9 @@ impl ApiService {
     }
 
     pub async fn rename_notepad(id: &str, name: &str) -> Result<(), gloo_net::Error> {
-        let payload = RenameNotepadPayload { name: name.to_string() };
+        let payload = RenameNotepadPayload {
+            name: name.to_string(),
+        };
         Request::put(&format!("/api/notepads/{}", id))
             .json(&payload)?
             .send()
@@ -184,7 +197,9 @@ impl ApiService {
     }
 
     pub async fn search(query: &str) -> Result<SearchResponse, gloo_net::Error> {
-        let encoded = percent_encoding::utf8_percent_encode(query, percent_encoding::NON_ALPHANUMERIC).to_string();
+        let encoded =
+            percent_encoding::utf8_percent_encode(query, percent_encoding::NON_ALPHANUMERIC)
+                .to_string();
         Request::get(&format!("/api/search?query={}", encoded))
             .send()
             .await?

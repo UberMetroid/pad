@@ -53,7 +53,8 @@ pub fn diff_strings(old: &str, new: &str) -> Vec<Op> {
     let old_chars: Vec<char> = old.chars().collect();
     let new_chars: Vec<char> = new.chars().collect();
     let mut start = 0;
-    while start < old_chars.len() && start < new_chars.len() && old_chars[start] == new_chars[start] {
+    while start < old_chars.len() && start < new_chars.len() && old_chars[start] == new_chars[start]
+    {
         start += 1;
     }
     let mut old_end = old_chars.len();

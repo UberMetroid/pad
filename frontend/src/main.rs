@@ -1,19 +1,34 @@
-mod types; mod services; mod login; mod settings; mod preview; mod search;
-mod editor; mod modals; mod shortcuts; mod collab; mod collab_utils; mod header;
-mod toolbar; mod i18n; mod i18n_en_es; mod i18n_de_fr; mod i18n_ja_zh; mod i18n_pt_ru;
+mod collab;
+mod collab_utils;
+mod editor;
+mod header;
+mod i18n;
+mod i18n_de_fr;
+mod i18n_en_es;
+mod i18n_ja_zh;
+mod i18n_pt_ru;
+mod login;
+mod modals;
+mod preview;
+mod search;
+mod services;
+mod settings;
+mod shortcuts;
+mod toolbar;
+mod types;
 
-use yew::prelude::*;
+use editor::Editor;
+use header::Header;
+use login::Login;
+use modals::{DeleteModal, RenameModal, ShortcutsModal};
+use search::SearchModal;
+use services::{ApiService, StorageService};
+use settings::SettingsModal;
 use shortcuts::register_keyboard_shortcuts;
+use types::Notepad;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::window;
-use types::Notepad;
-use services::{ApiService, StorageService};
-use login::Login;
-use settings::SettingsModal;
-use search::SearchModal;
-use editor::Editor;
-use modals::{RenameModal, DeleteModal, ShortcutsModal};
-use header::Header;
+use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -38,11 +53,13 @@ pub fn app() -> Html {
         let preview = preview_mode.clone();
         let s = settings.clone();
         let version = app_version.clone();
-        
+
         use_effect_with((*authenticated).clone(), move |&auth| {
             if auth {
                 spawn_local(async move {
-                    if let Ok(config) = ApiService::get_config().await { version.set(config.version); }
+                    if let Ok(config) = ApiService::get_config().await {
+                        version.set(config.version);
+                    }
                     if let Ok(res) = ApiService::get_notepads().await {
                         notepads.set(res.notepads_list);
                         active_id.set(res.note_history);
@@ -64,7 +81,9 @@ pub fn app() -> Html {
             spawn_local(async move {
                 if let Ok(note) = ApiService::create_notepad().await {
                     a.set(note.id);
-                    if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
+                    if let Ok(res) = ApiService::get_notepads().await {
+                        n.set(res.notepads_list);
+                    }
                 }
             });
         })
@@ -100,7 +119,12 @@ pub fn app() -> Html {
 
     let on_notepad_select = {
         let active_id = active_notepad_id.clone();
-        Callback::from(move |e: Event| active_id.set(e.target_unchecked_into::<web_sys::HtmlSelectElement>().value()))
+        Callback::from(move |e: Event| {
+            active_id.set(
+                e.target_unchecked_into::<web_sys::HtmlSelectElement>()
+                    .value(),
+            )
+        })
     };
 
     let on_rename_confirm = {
@@ -112,7 +136,9 @@ pub fn app() -> Html {
             spawn_local(async move {
                 let _ = ApiService::rename_notepad(&nid, &new_name).await;
                 ro.set(false);
-                if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
+                if let Ok(res) = ApiService::get_notepads().await {
+                    n.set(res.notepads_list);
+                }
             });
         })
     };
@@ -123,12 +149,19 @@ pub fn app() -> Html {
         let active_id = active_notepad_id.clone();
         let notepads = notepads.clone();
         Callback::from(move |_| {
-            let (nid, do_open, aid, n) = (nid.clone(), delete_open.clone(), active_id.clone(), notepads.clone());
+            let (nid, do_open, aid, n) = (
+                nid.clone(),
+                delete_open.clone(),
+                active_id.clone(),
+                notepads.clone(),
+            );
             spawn_local(async move {
                 let _ = ApiService::delete_notepad(&nid).await;
                 do_open.set(false);
                 aid.set("default".to_string());
-                if let Ok(res) = ApiService::get_notepads().await { n.set(res.notepads_list); }
+                if let Ok(res) = ApiService::get_notepads().await {
+                    n.set(res.notepads_list);
+                }
             });
         })
     };
@@ -137,10 +170,17 @@ pub fn app() -> Html {
         let theme = theme.clone();
         Callback::from(move |_| {
             let next = match theme.as_str() {
-                "light" => "dark", "dark" => "nord", "nord" => "dracula", "dracula" => "sepia", _ => "light",
+                "light" => "dark",
+                "dark" => "nord",
+                "nord" => "dracula",
+                "dracula" => "sepia",
+                _ => "light",
             };
             StorageService::set_theme(next);
-            let _ = window().and_then(|w| w.document()).and_then(|d| d.document_element()).map(|r| r.set_attribute("data-theme", next));
+            let _ = window()
+                .and_then(|w| w.document())
+                .and_then(|d| d.document_element())
+                .map(|r| r.set_attribute("data-theme", next));
             theme.set(next.to_string());
         })
     };
@@ -150,7 +190,9 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             let auth = auth.clone();
             spawn_local(async move {
-                if ApiService::logout().await.is_ok() { auth.set(false); }
+                if ApiService::logout().await.is_ok() {
+                    auth.set(false);
+                }
             });
         })
     };
@@ -162,19 +204,37 @@ pub fn app() -> Html {
         "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
     };
 
-    let active_name = notepads.iter().find(|n| n.id == *active_notepad_id).map(|n| n.name.clone()).unwrap_or_else(|| "default".to_string());
-    let (nid_val, notes_val, ver_val, prev_val) = ((*active_notepad_id).clone(), (*notepads).clone(), (*app_version).clone(), (*preview_mode).clone());
-    
+    let active_name = notepads
+        .iter()
+        .find(|n| n.id == *active_notepad_id)
+        .map(|n| n.name.clone())
+        .unwrap_or_else(|| "default".to_string());
+    let (nid_val, notes_val, ver_val, prev_val) = (
+        (*active_notepad_id).clone(),
+        (*notepads).clone(),
+        (*app_version).clone(),
+        (*preview_mode).clone(),
+    );
+
     let on_preview_toggle = {
         let p = preview_mode.clone();
-        Callback::from(move |_| p.set(match p.as_str() { "off" => "split", "split" => "preview-only", _ => "off" }.to_string()))
+        Callback::from(move |_| {
+            p.set(
+                match p.as_str() {
+                    "off" => "split",
+                    "split" => "preview-only",
+                    _ => "off",
+                }
+                .to_string(),
+            )
+        })
     };
 
     html! {
         <ContextProvider<i18n::LocaleContext> context={locale_context}>
             <div class="container">
                 <link rel="stylesheet" href={theme_stylesheet_url} />
-                <Header 
+                <Header
                     active_notepad_id={nid_val}
                     notepads={notes_val}
                     on_notepad_select={on_notepad_select}
@@ -192,35 +252,35 @@ pub fn app() -> Html {
                     current_theme={(*theme).clone()}
                 />
                 <main>
-                    <Editor 
+                    <Editor
                         notepad_id={(*active_notepad_id).clone()}
                         preview_mode={(*preview_mode).clone()}
                         save_interval={settings.save_status_message_interval}
                         disable_print_expand={settings.disable_print_expand}
                     />
                 </main>
-                <SearchModal 
+                <SearchModal
                     is_open={*search_open}
                     on_close={let s = search_open.clone(); Callback::from(move |_| s.set(false))}
                     on_select={let active_id = active_notepad_id.clone(); Callback::from(move |id| active_id.set(id))}
                 />
-                <SettingsModal 
+                <SettingsModal
                     is_open={*settings_open}
                     on_close={let s = settings_open.clone(); Callback::from(move |_| s.set(false))}
                     on_save={let s = settings.clone(); Callback::from(move |new_s| s.set(new_s))}
                 />
-                <RenameModal 
+                <RenameModal
                     is_open={*rename_open}
                     initial_value={active_name.clone()}
                     on_close={let r = rename_open.clone(); Callback::from(move |_| r.set(false))}
                     on_confirm={on_rename_confirm}
                 />
-                <DeleteModal 
+                <DeleteModal
                     is_open={*delete_open}
                     on_close={let d = delete_open.clone(); Callback::from(move |_| d.set(false))}
                     on_confirm={on_delete_confirm}
                 />
-                <ShortcutsModal 
+                <ShortcutsModal
                     is_open={*shortcuts_open}
                     on_close={let s = shortcuts_open.clone(); Callback::from(move |_| s.set(false))}
                 />
