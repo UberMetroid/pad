@@ -90,6 +90,39 @@ RustPad can be configured via environment variables:
 
 ---
 
+## Project Structure
+
+```
+RustPad/
+├── Cargo.toml          # Workspace manifest
+├── Dockerfile          # Multi-stage optimized Rust builder
+├── docker-compose.yml  # Docker Compose configuration
+├── data/               # Persistent notepad storage (plain text files + metadata index)
+│   ├── notepads.json   # Index metadata of all pads
+│   └── <notepad-id>.txt# Individual raw text notepad content
+├── docs/               # Technical documentation
+│   └── MARKDOWN_SYNTAX_HIGHLIGHTING_USAGE.md
+├── src/                # Axum backend web server & WebSocket implementation
+│   ├── main.rs         # Application entrypoint & Axum setup
+│   ├── state.rs        # AppState and global configurations
+│   ├── migration.rs    # Auto-migration of old folder layouts
+│   ├── search.rs       # In-memory notepad fuzzy indexing/searching
+│   ├── utils.rs        # Helper parsing utilities
+│   ├── ws.rs           # WebSocket connection handlers for client-sync
+│   └── routes/         # REST API controller handlers (Auth, CRUD, config)
+└── frontend/           # Yew frontend (SPA compiled to WASM via Trunk)
+    ├── Cargo.toml      # Frontend dependency manifest
+    ├── index.html      # Trunk template HTML entrypoint
+    ├── service-worker.js# PWA offline asset caching & version control
+    ├── Assets/         # Static visual assets & metadata
+    │   ├── styles.css  # Application stylesheet (responsive modern layout)
+    │   ├── manifest.json# PWA standalone manifest configuration
+    │   └── rustpad.svg # Application vector logo
+    └── src/            # Yew components & client business logic
+```
+
+---
+
 ## Contributing & License
 
 1. Fork the repo and create your feature branch.
