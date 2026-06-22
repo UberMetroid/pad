@@ -16,14 +16,9 @@ pub const COOKIE_NAME: &str = "rustpad_auth";
 
 // Redirect URL validator helper
 pub fn is_valid_redirect_url(url: &str) -> bool {
-    if url.is_empty() || !url.starts_with('/') || url.starts_with("//") || url.contains('\\') {
-        return false;
-    }
+    if url.is_empty() || !url.starts_with('/') || url.starts_with("//") || url.contains('\\') { return false; }
     let lower = url.to_lowercase();
-    if lower.contains("%2f") || lower.contains("%5c") {
-        return false;
-    }
-    true
+    !lower.contains("%2f") && !lower.contains("%5c")
 }
 
 // Authenticated helper
@@ -122,18 +117,11 @@ pub async fn pin_required(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
 ) -> impl IntoResponse {
-    let ip = get_client_ip(
-        &headers,
-        addr,
-        state.config.trust_proxy,
-        &state.config.trusted_proxies,
-    );
-
-    let locked = state.is_locked_out(ip).await;
+    let ip = get_client_ip(&headers, addr, state.config.trust_proxy, &state.config.trusted_proxies);
     axum::Json(serde_json::json!({
         "required": state.config.pin.is_some(),
         "length": state.config.pin.as_ref().map_or(0, |p| p.len()),
-        "locked": locked
+        "locked": state.is_locked_out(ip).await
     }))
 }
 
@@ -244,6 +232,11 @@ pub async fn verify_pin(
 
 // API: Logout
 pub async fn logout(jar: CookieJar) -> impl IntoResponse {
-    let jar = jar.remove(Cookie::build(COOKIE_NAME).path("/").build());
+    let jar = jar.add(
+        Cookie::build((COOKIE_NAME, ""))
+            .path("/")
+            .max_age(Duration::from_secs(0).try_into().unwrap())
+            .build(),
+    );
     (jar, axum::Json(serde_json::json!({ "success": true }))).into_response()
 }
