@@ -148,20 +148,30 @@ header {
     background-color: var(--secondary-color);
 }
 
-[data-theme="light"] .moon {
-    display: block;
+/* Multi-Theme Icon Colors */
+#theme-toggle .sun,
+.theme-toggle .sun {
+    color: #f59e0b; /* Amber/Yellow for light mode */
 }
 
-[data-theme="light"] .sun {
-    display: none;
+#theme-toggle .moon,
+.theme-toggle .moon {
+    color: #f1f5f9; /* Slate/Silver for dark mode */
 }
 
-[data-theme="dark"] .moon {
-    display: none;
+#theme-toggle .droplet,
+.theme-toggle .droplet {
+    color: #88c0d0; /* Nord Ice Blue for Nord theme */
 }
 
-[data-theme="dark"] .sun {
-    display: block;
+#theme-toggle .sparkles,
+.theme-toggle .sparkles {
+    color: #ff79c6; /* Dracula Pink/Purple for Dracula theme */
+}
+
+#theme-toggle .coffee,
+.theme-toggle .coffee {
+    color: #b58900; /* Sepia Warm Brown for Sepia theme */
 }
 
 main {
