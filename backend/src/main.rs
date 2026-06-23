@@ -84,6 +84,7 @@ async fn main() {
         std::env::var("BASE_URL").unwrap_or_else(|_| format!("http://localhost:{}", port));
     let node_env = std::env::var("NODE_ENV").unwrap_or_else(|_| "development".to_string());
     let version = env!("CARGO_PKG_VERSION").to_string();
+    let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "*".to_string());
 
     let root_path = PathBuf::from(".");
     let data_dir = root_path.join("data");
@@ -104,6 +105,7 @@ async fn main() {
             base_url,
             node_env,
             version,
+            allowed_origins,
         },
         data_dir,
         notepads_file,
@@ -176,7 +178,27 @@ async fn main() {
         }
     });
 
-    let cors = tower_http::cors::CorsLayer::permissive();
+    let cors = if state.config.allowed_origins == "*" {
+        tower_http::cors::CorsLayer::permissive()
+    } else {
+        let mut cors = tower_http::cors::CorsLayer::new()
+            .allow_methods([
+                axum::http::Method::GET,
+                axum::http::Method::POST,
+                axum::http::Method::PUT,
+                axum::http::Method::DELETE,
+            ])
+            .allow_headers([
+                axum::http::header::CONTENT_TYPE,
+                axum::http::header::COOKIE,
+            ]);
+        for origin in state.config.allowed_origins.split(',') {
+            if let Ok(parsed) = origin.trim().parse::<axum::http::HeaderValue>() {
+                cors = cors.allow_origin(parsed);
+            }
+        }
+        cors.allow_credentials(true)
+    };
 
     // Setup routes
     let api_routes = Router::new()

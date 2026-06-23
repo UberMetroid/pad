@@ -36,6 +36,7 @@ pub struct AppConfig {
     pub base_url: String,
     pub node_env: String,
     pub version: String,
+    pub allowed_origins: String,
 }
 
 pub struct AppStateInner {
