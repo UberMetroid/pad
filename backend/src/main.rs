@@ -41,6 +41,7 @@ async fn main() {
         .and_then(|s| s.parse::<u16>().ok())
         .unwrap_or(4402);
     let site_title = std::env::var("RUSTPAD_TITLE")
+        .or_else(|_| std::env::var("RUSTPAD_SITE_TITLE"))
         .or_else(|_| std::env::var("SITE_TITLE"))
         .unwrap_or_else(|_| "RustPad".to_string());
     let pin = std::env::var("RUSTPAD_PIN")
