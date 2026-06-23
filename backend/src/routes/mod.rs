@@ -138,7 +138,7 @@ pub fn generate_pwa_manifest(site_title: &str, public_dir: &StdPath) -> std::io:
     get_files(public_dir, "", &mut files)?;
 
     let json_files = serde_json::to_string_pretty(&files)?;
-    std::fs::write(assets_dir.join("asset-manifest.json"), json_files)?;
+    std::fs::write(public_dir.join("asset-manifest.json"), json_files)?;
 
     let pwa_manifest = serde_json::json!({
         "name": site_title,
