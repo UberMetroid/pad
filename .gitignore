@@ -1,28 +1,29 @@
 # Rust build artifacts
 target/
+**/target/
 
-# Frontend build output
+# Trunk build artifacts
+dist/
 frontend/dist/
+frontend/target/
 
-# Local environment files
+# Local configuration
 .env
 .env.local
 .env.*.local
-!.env.example
 
-# Local runtime data
+# Local databases and user data
 data/
-!data/.gitkeep
+uploads/
+local_uploads/
 
-# IDE files
+# IDE/Editor config
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+*.swp
+*.swo
+.cursor/
 
-# OS files
+# OS specific files
 .DS_Store
 Thumbs.db
