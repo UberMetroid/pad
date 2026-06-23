@@ -143,8 +143,11 @@ pub async fn verify_pin(
         let cookie_max_age = Duration::from_secs((state.config.cookie_max_age_hours * 3600) as u64);
         let same_site = SameSite::Strict;
 
-        let secure =
-            state.config.base_url.starts_with("https") && state.config.node_env == "production";
+        let secure = headers
+            .get("x-forwarded-proto")
+            .and_then(|v| v.to_str().ok())
+            .map(|v| v.eq_ignore_ascii_case("https"))
+            .unwrap_or_else(|| state.config.base_url.starts_with("https"));
 
         let jar = jar.add(
             Cookie::build((COOKIE_NAME, hashed_payload_pin))
