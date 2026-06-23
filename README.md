@@ -1,5 +1,9 @@
 # RustPad - Real-Time Collaborative Notepad
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/UberMetroid/RustPad/main/frontend/Assets/rustpad.png" alt="RustPad Logo" width="128" height="128">
+</p>
+
 RustPad is a collaborative real-time notepad and text editor designed for minimal resource usage, zero external JS library bloat, and fast load speeds. Built with a Rust (Axum/Tokio) backend and a WebAssembly (Yew) frontend.
 
 ---
