@@ -59,10 +59,12 @@ Configure these settings inside your Docker Compose environment or container env
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `PORT` | The port address the backend web server listens on. | `4402` |
-| `BASE_URL` | Application base URL. | `http://localhost:4402` |
-| `RUSTPAD_PIN` | Optional 4-10 digit authentication PIN. | None |
-| `SITE_TITLE` | The title shown in the browser and PWA manifest. | `RustPad` |
+| `PORT` | The port number the backend HTTP server will bind to inside the container. | `4402` |
+| `SITE_TITLE` | Custom website title rendered in navigation headers, browser tabs, and PWA manifest. *(Supports fallback `RUSTRUSTPAD_TITLE`)* | `RustPad` |
+| `BASE_URL` | Application base URL. Essential when deploying behind reverse proxies to ensure redirect and websocket links are resolved correctly. | `http://localhost:4402` |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed HTTP request origins (CORS filter). Use `*` to allow all origins. | `*` |
+| `RUSTPAD_PIN` | Optional 4–10 digit PIN (numerical only) to lock access to the interface. Leave empty for public mode. | None |
+| `TZ` | Timezone for the container processes and logs. | `UTC` |
 | `MAX_ATTEMPTS` | Maximum PIN auth attempts allowed before rate lockout. | `5` |
 | `LOCKOUT_TIME` | Bruteforce lockout duration in minutes. | `15` |
 | `TRUST_PROXY` | Set true if deploying behind reverse proxy (Nginx, Cloudflare). | `false` |
