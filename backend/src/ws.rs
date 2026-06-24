@@ -82,7 +82,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                             "notepadId": notepad_id,
                             "count": count
                         });
-                        let msg = Message::Text(connect_msg.to_string());
+                        let msg = Message::Text(connect_msg.to_string().into());
                         for client_tx in clients_map.values() {
                             let _ = client_tx.send(msg.clone());
                         }
@@ -118,7 +118,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                                 "operationId": op_id,
                                 "serverVersion": server_version
                             });
-                            let _ = tx.send(Message::Text(ack_msg.to_string()));
+                            let _ = tx.send(Message::Text(ack_msg.to_string().into()));
 
                             // Broadcast operation to peer connections
                             let clients_map = state.clients.read().await;
@@ -128,7 +128,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                                 "notepadId": nid,
                                 "userId": user_id.as_deref().unwrap_or("")
                             });
-                            let msg = Message::Text(broadcast_msg.to_string());
+                            let msg = Message::Text(broadcast_msg.to_string().into());
                             for (cid, client_tx) in clients_map.iter() {
                                 if Some(cid) != user_id.as_ref() {
                                     let _ = client_tx.send(msg.clone());
@@ -152,7 +152,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                             "position": position,
                             "notepadId": nid
                         });
-                        let msg = Message::Text(broadcast_msg.to_string());
+                        let msg = Message::Text(broadcast_msg.to_string().into());
                         for (cid, client_tx) in clients_map.iter() {
                             if Some(cid) != user_id.as_ref() {
                                 let _ = client_tx.send(msg.clone());
@@ -169,7 +169,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                         "notepadId": nid,
                         "newName": new_name
                     });
-                    let msg = Message::Text(broadcast_msg.to_string());
+                    let msg = Message::Text(broadcast_msg.to_string().into());
                     for (cid, client_tx) in clients_map.iter() {
                         if Some(cid) != user_id.as_ref() {
                             let _ = client_tx.send(msg.clone());
@@ -185,7 +185,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
                         "operations": history,
                         "notepadId": nid
                     });
-                    let _ = tx.send(Message::Text(sync_response.to_string()));
+                    let _ = tx.send(Message::Text(sync_response.to_string().into()));
                 } else {
                     // Fallback to broadcasting other messages directly
                     let clients_map = state.clients.read().await;
@@ -213,7 +213,7 @@ async fn ws_handler(socket: WebSocket, state: AppState) {
             "count": count
         });
 
-        let msg = Message::Text(disconnect_msg.to_string());
+        let msg = Message::Text(disconnect_msg.to_string().into());
         for client_tx in clients_map.values() {
             let _ = client_tx.send(msg.clone());
         }
