@@ -10,7 +10,7 @@ Log is a collaborative real-time notepad and text editor designed for minimal re
 
 ## 🐳 Container Installation
 
-### Option 1: Docker Compose (Recommended)
+
 
 1. Create a `docker-compose.yml` file:
 
@@ -41,19 +41,6 @@ docker compose up -d
 
 3. Open your browser and navigate to `http://localhost:4402`.
 
-### Option 2: Docker CLI
-
-Run the following command to start the container:
-
-```bash
-docker run -d \
-  --name log \
-  --restart unless-stopped \
-  -p 4402:4402 \
-  -v $(pwd)/data:/app/data \
-  -e LOG_PIN=1234 \
-  ubermetroid/log:latest
-```
 
 ---
 
@@ -77,64 +64,8 @@ Configure these settings inside your Docker Compose environment or container env
 | `TRUST_PROXY` | Set true if deploying behind reverse proxy (Nginx, Cloudflare). | `false` |
 | `TRUSTED_PROXY_IPS` | Comma-separated list of trusted proxy CIDRs/IPs. | None |
 
-## 📂 Repository Structure
-
-```
-.
-├── backend/
-│   ├── Cargo.toml
-│   └── src
-│       ├── config.rs
-│       ├── main.rs
-│       ├── migration.rs
-│       ├── routes
-│       │   ├── auth.rs
-│       │   ├── mod.rs
-│       │   ├── notepads_crud.rs
-│       │   ├── notepads_io.rs
-│       │   └── pages.rs
-│       ├── search.rs
-│       ├── state.rs
-│       ├── tests.rs
-│       ├── utils.rs
-│       └── ws.rs
-└── frontend/
-    ├── Assets
-    │   ├── app.css
-    │   ├── asset-manifest.json
-    │   ├── base.css
-    │   ├── header.css
-    │   ├── login.css
-    │   ├── manifest.json
-    │   ├── log.png
-    │   └── log.svg
-    ├── Cargo.toml
-    ├── index.html
-    ├── service-worker.js
-    └── src
-        ├── app.rs
-        ├── collab.rs
-        ├── collab_utils.rs
-        ├── editor.rs
-        ├── header.rs
-        ├── i18n
-        │   ├── de.rs
-        │   ├── en.rs
-        │   ├── es.rs
-        │   ├── fr.rs
-        │   ├── ja.rs
-        │   ├── pt.rs
-        │   ├── ru.rs
-        │   └── zh.rs
-        ├── i18n.rs
-        ├── login.rs
-        ├── main.rs
-        ├── services.rs
-        ├── storage.rs
-        └── types.rs
-```
 
 
 ---
 
-*Note: This repository was forked from [RustPad](https://github.com/UberMetroid/RustPad).*
+*Note: This repository was forked from [DumbPad](https://github.com/DumbWareio/DumbPad).*
