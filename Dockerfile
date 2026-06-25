@@ -37,6 +37,10 @@ LABEL org.opencontainers.image.source="https://github.com/UberMetroid/RustPad"
 
 WORKDIR /app
 
+ENV PORT=4402
+ENV NODE_ENV=production
+ENV LOG_DIR=/app/log
+
 # Copy compiled Rust binary
 COPY --from=rust-builder /app/target/release/rustpad /app/rustpad
 
