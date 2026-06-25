@@ -84,6 +84,7 @@ async fn main() {
         .with(file_layer_app)
         .init();
 
+    dotenvy::from_path("/app/data/.env").ok();
     dotenvy::dotenv().ok();
 
     let port = std::env::var("PORT")
