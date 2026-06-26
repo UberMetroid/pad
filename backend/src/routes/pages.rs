@@ -44,7 +44,10 @@ pub async fn serve_root(
     )
     .await
     {
-        Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
+        Ok(html) => {
+            let rendered = html.replace("{{SITE_TITLE}}", &state.config.site_title);
+            ([(axum::http::header::CONTENT_TYPE, "text/html")], rendered).into_response()
+        }
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             format!("Error loading index.html: {}", e),
@@ -78,7 +81,10 @@ pub async fn serve_login(
     )
     .await
     {
-        Ok(html) => ([(axum::http::header::CONTENT_TYPE, "text/html")], html).into_response(),
+        Ok(html) => {
+            let rendered = html.replace("{{SITE_TITLE}}", &state.config.site_title);
+            ([(axum::http::header::CONTENT_TYPE, "text/html")], rendered).into_response()
+        }
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             format!("Error loading index.html: {}", e),
