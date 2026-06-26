@@ -59,4 +59,7 @@ VOLUME /app/data
 
 EXPOSE 4402
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD wget -qO- http://localhost:4402/health || exit 1
+
 CMD ["/app/backend"]
