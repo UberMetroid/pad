@@ -17,7 +17,7 @@ pub fn app() -> Html {
     let is_pin_required = use_state(|| true);
     let enable_translation = use_state(|| false);
     let enable_themes = use_state(|| true);
-    let enable_print = use_state(|| true);
+    let enable_print = use_state(|| false);
 
     {
         let version = app_version.clone();

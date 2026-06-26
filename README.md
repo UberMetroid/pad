@@ -43,7 +43,7 @@ services:
       - TZ=UTC
       - ENABLE_TRANSLATION=false
       - ENABLE_THEMES=true
-      - ENABLE_PRINT=true
+      - ENABLE_PRINT=false
 ```
 
 2. Run the container:
@@ -79,7 +79,7 @@ Configure these settings inside your Docker Compose environment or container env
 | `TZ` | Timezone for the container processes and logs. | `UTC` |
 | `ENABLE_TRANSLATION` | Enable the multi-language / translation selector in the navigation header (true/false). | `false` |
 | `ENABLE_THEMES` | Enable the Super Metroid theme selector in the navigation header (true/false). | `true` |
-| `ENABLE_PRINT` | Enable the print button in the navigation header (true/false). | `true` |
+| `ENABLE_PRINT` | Enable the print button in the navigation header (true/false). | `false` |
 | `MAX_ATTEMPTS` | Maximum PIN auth attempts allowed before rate lockout. | `5` |
 | `LOCKOUT_TIME` | Bruteforce lockout duration in minutes. | `15` |
 | `TRUST_PROXY` | Set true if deploying behind reverse proxy (Nginx, Cloudflare). | `false` |
