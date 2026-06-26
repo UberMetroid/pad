@@ -14,6 +14,7 @@ name = "backend"
 path = "src/main.rs"
 
 [dependencies]
+ubermetroid-shared = { path = "../frontend/Assets/shared-assets/shared-rust" }
 axum = { version = "0.8", features = ["ws", "macros"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
