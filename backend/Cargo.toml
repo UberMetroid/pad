@@ -31,3 +31,25 @@ tracing-subscriber = "0.3"
 ipnet = "2.9"
 percent-encoding = "2.3"
 sha2 = "0.11"
+
+[package.metadata.deb]
+name = "pad"
+changelog = "debian/changelog"
+copyright = "2026 UberMetroid <admin@ubermetroid.com>"
+maintainer = "UberMetroid <admin@ubermetroid.com>"
+extended-description = """\
+Pad is a high-performance, real-time collaborative notepad built in Rust. \
+It provides synchronized multi-user editing via WebSockets with autosave and \
+optional PIN access protection."""
+depends = "$auto, libc6, ca-certificates"
+section = "utils"
+priority = "optional"
+maintainer-scripts = "debian"
+assets = [
+    ["target/release/backend", "usr/bin/pad", "755"],
+    ["../README.md", "usr/share/doc/pad/README.md", "644"],
+]
+systemd-units = {}
+
+[package.metadata.generate-rpm]
+name = "pad"

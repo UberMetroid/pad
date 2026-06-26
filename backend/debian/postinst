@@ -1,0 +1,49 @@
+#!/bin/sh
+# postinst script for pad
+set -e
+
+case "$1" in
+    configure)
+        # Create system user (nobody:users with UID/GID 99/100 to match Unraid layout)
+        if ! getent group pad >/dev/null 2>&1; then
+            addgroup --system --gid 100 pad 2>/dev/null || true
+        fi
+        if ! getent passwd pad >/dev/null 2>&1; then
+            adduser --system --uid 99 --ingroup pad \
+                --home /var/lib/pad \
+                --no-create-home \
+                --shell /usr/sbin/nologin \
+                --gecos "Pad collaborative notepad service account" \
+                pad 2>/dev/null || true
+        fi
+
+        # Create data directory
+        mkdir -p /var/lib/pad
+        chown pad:pad /var/lib/pad
+        chmod 755 /var/lib/pad
+
+        # Create default config file if missing
+        if [ ! -f /etc/default/pad ]; then
+            cat > /etc/default/pad << 'CFGEOF'
+# Default configuration for Pad collaborative notepad
+# Override any value by uncommenting and editing.
+PORT=4402
+SITE_TITLE=Pad collaborative notepad
+TZ=UTC
+CFGEOF
+            chmod 644 /etc/default/pad
+        fi
+
+        echo "==============================================="
+        echo "  Pad collaborative notepad installed successfully"
+        echo "  Config:  /etc/default/pad"
+        echo "  Data:    /var/lib/pad"
+        echo "  Binary:  /usr/bin/pad"
+        echo ""
+        echo "  Start manually: pad"
+        echo "==============================================="
+        ;;
+esac
+
+#DEBHELPER#
+exit 0

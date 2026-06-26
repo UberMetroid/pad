@@ -1,0 +1,15 @@
+#!/bin/sh
+# postrm script for pad
+set -e
+
+case "$1" in
+    purge)
+        rm -rf /var/lib/pad
+        deluser --quiet --system pad 2>/dev/null || true
+        delgroup --quiet --system pad 2>/dev/null || true
+        rm -f /etc/default/pad
+        ;;
+esac
+
+#DEBHELPER#
+exit 0
