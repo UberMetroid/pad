@@ -22,7 +22,7 @@
 
         # 1. Build the WASM frontend
         frontend = rustPlatform.buildRustPackage {
-          pname = "pad-frontend";
+          pname = "frontend";
           version = "2.0.0";
           src = ./.;
 
@@ -50,7 +50,7 @@
 
         # 2. Build the Axum backend
         backend = rustPlatform.buildRustPackage {
-          pname = "pad-backend";
+          pname = "backend";
           version = "2.0.0";
           src = ./.;
 
@@ -64,12 +64,12 @@
           doCheck = false;
 
           buildPhase = ''
-            cargo build --release --bin pad
+            cargo build --release --bin backend
           '';
 
           installPhase = ''
             mkdir -p $out/bin
-            cp target/release/pad $out/bin/pad
+            cp target/release/backend $out/bin/backend
           '';
         };
 
@@ -80,7 +80,7 @@
           
           # Run under the nobody user (UID 65534)
           config = {
-            Cmd = [ "${backend}/bin/pad" ];
+            Cmd = [ "${backend}/bin/backend" ];
             WorkingDir = "/app";
             Env = [
               "PORT=4402"

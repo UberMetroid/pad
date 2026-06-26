@@ -107,6 +107,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "backend"
+version = "2.0.0"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "cookie",
+ "dotenvy",
+ "futures-util",
+ "ipnet",
+ "notify",
+ "percent-encoding",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -326,6 +348,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "frontend"
+version = "2.0.0"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "gloo-net 0.7.0",
+ "gloo-timers 0.4.0",
+ "js-sys",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
 ]
 
 [[package]]
@@ -1014,46 +1054,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "pad"
-version = "2.0.0"
-dependencies = [
- "axum",
- "axum-extra",
- "cookie",
- "dotenvy",
- "futures-util",
- "ipnet",
- "notify",
- "percent-encoding",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "pad-frontend"
-version = "2.0.0"
-dependencies = [
- "futures-channel",
- "futures-util",
- "gloo-net 0.7.0",
- "gloo-timers 0.4.0",
- "js-sys",
- "percent-encoding",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
-]
 
 [[package]]
 name = "parking_lot"
