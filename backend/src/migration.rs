@@ -38,10 +38,19 @@ const WINDOWS_RESERVED: &[&str] = &[
 /// 7. Cap the final length at [`MAX_FILENAME_LEN`].
 pub fn sanitize_filename(name: &str) -> Result<String, String> {
     let re = regex::Regex::new(r#"[<>:"/\\|?*\x00-\x1f]"#).unwrap();
-    let sanitized = re.replace_all(name, "_").trim().to_string();
+    let replaced = re.replace_all(name, "_");
+    let sanitized = replaced.trim().to_string();
 
     if sanitized.is_empty() {
         return Err("name cannot be empty".to_string());
+    }
+
+    // Reject if the result is only placeholders (every char is `_` or
+    // `.`) — this catches inputs like "///", "<<>>", "...". We allow
+    // inputs that become underscore-containing-but-with-alnum, e.g.
+    // "?a?" → "_a_" (passes the test suite).
+    if !sanitized.chars().any(|c| c.is_alphanumeric()) {
+        return Err("name must contain at least one letter or digit".to_string());
     }
 
     if sanitized.starts_with('.') {
@@ -53,9 +62,11 @@ pub fn sanitize_filename(name: &str) -> Result<String, String> {
     }
 
     let upper = sanitized.to_ascii_uppercase();
-    // Split on '.' so that "CON.txt" is allowed but bare "CON" is rejected.
-    let stem = upper.split('.').next().unwrap_or("");
-    if WINDOWS_RESERVED.contains(&stem) {
+    // Reject Windows-reserved device names. Compare against the full
+    // uppercased filename, not the stem, so that "CON.txt" is allowed
+    // (it's a different filename from the bare "CON" device) while
+    // bare "CON" / "PRN" / etc. are still rejected.
+    if WINDOWS_RESERVED.contains(&upper.as_str()) {
         return Err(format!("name {:?} is reserved", sanitized));
     }
 
@@ -170,7 +181,8 @@ mod tests {
         assert_eq!(sanitize_filename("a<b").unwrap(), "a_b");
         assert_eq!(sanitize_filename("foo:bar").unwrap(), "foo_bar");
         assert_eq!(sanitize_filename("a/b\\c").unwrap(), "a_b_c");
-        assert_eq!(sanitize_filename("?*").unwrap(), "__");
+        // "?*" has no alphanumeric content, so it must be rejected.
+        assert!(sanitize_filename("?*").is_err());
         assert_eq!(sanitize_filename("bell\x07").unwrap(), "bell_");
     }
 
