@@ -1,3 +1,16 @@
+//! WebSocket sync for collaborative notepad editing.
+//!
+//! FIXME: This is a **broadcast-only** implementation. Concurrent typing by
+//! two users at different positions in the document will result in
+//! divergent textareas; the only shared notion of state is the on-disk
+//! file (which is last-writer-wins on save). True collaborative editing
+//! requires either:
+//!   - Operational Transformation (e.g. the `ot` crate)
+//!   - CRDTs (e.g. `y-crdt`, `automerge`)
+//!
+//! Tracked as a separate issue. The current implementation is suitable
+//! for single-writer or low-conflict multi-writer scenarios only.
+
 use axum::{
     extract::{
         ConnectInfo, State,
@@ -12,6 +25,32 @@ use tokio::sync::mpsc;
 
 use crate::state::AppState;
 
+/// Decide whether a WebSocket upgrade request from `origin_header` is allowed.
+///
+/// The rules:
+///
+/// - In `development` (`NODE_ENV=development`), all origins are allowed.
+///   This is the documented developer convenience for local hacking.
+/// - In any other environment, the request's `Origin` header **must** match
+///   the configured `base_url` (modulo trailing slash). Requests with no
+///   `Origin` header are rejected (browsers always send one for cross-origin
+///   upgrades; non-browser clients can set it).
+///
+/// The previous `base_url == "*"` shortcut that disabled the check in
+/// production has been removed: a misconfigured `BASE_URL=*` (the `.env.example`
+/// default for many setups) used to silently disable CSRF protection on the
+/// WebSocket. Now such configurations will reject all connections until the
+/// operator sets `BASE_URL` to the public URL or runs with `NODE_ENV=development`.
+fn is_origin_allowed(origin_header: Option<&str>, config_base_url: &str, node_env: &str) -> bool {
+    if node_env == "development" {
+        return true;
+    }
+    let Some(origin) = origin_header else {
+        return false;
+    };
+    origin.trim_end_matches('/') == config_base_url.trim_end_matches('/')
+}
+
 pub async fn handle_socket(
     ws: WebSocketUpgrade,
     ConnectInfo(_addr): ConnectInfo<SocketAddr>,
@@ -20,16 +59,16 @@ pub async fn handle_socket(
 ) -> impl IntoResponse {
     let origin = headers.get("origin").and_then(|h| h.to_str().ok());
 
-    let allowed = if state.config.node_env == "development" || state.config.server.base_url == "*" {
-        true
-    } else if let Some(o) = origin {
-        o == state.config.server.base_url
-    } else {
-        false
-    };
+    let allowed = is_origin_allowed(origin, &state.config.server.base_url, &state.config.node_env);
 
     if !allowed {
-        println!("Blocked WebSocket connection from origin: {:?}", origin);
+        tracing::warn!(
+            target: "ws",
+            "Blocked WebSocket upgrade from origin {:?} (base_url={}, env={})",
+            origin,
+            state.config.server.base_url,
+            state.config.node_env,
+        );
         return (axum::http::StatusCode::FORBIDDEN, "Forbidden").into_response();
     }
 

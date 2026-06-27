@@ -1,7 +1,5 @@
-use axum::{
-    Router, middleware,
-    routing::{get, post, put},
-};
+use axum::{Router, middleware, routing::{get, post, put}};
+use shared_assets::middleware::{HstsState, cors_layer, hsts_layer, security_headers_layer};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -18,7 +16,6 @@ mod search;
 mod state;
 #[cfg(test)]
 mod tests;
-mod utils;
 mod ws;
 
 pub use config::AppConfig;
@@ -97,14 +94,15 @@ async fn main() {
     let notepads_file = data_dir.join("notepads.json");
     let public_dir = root_path.join("frontend/dist");
 
-    // Initialize state
+    // Initialize state. Note: `login_attempts` is intentionally absent — PIN
+    // brute-force lockouts are now global via `shared_assets::auth::attempts`
+    // and clean themselves up. We only manage the per-IP request budget here.
     let state: AppState = Arc::new(AppStateInner {
         config,
         data_dir,
         notepads_file,
         clients: RwLock::new(HashMap::new()),
         operations_history: RwLock::new(HashMap::new()),
-        login_attempts: RwLock::new(HashMap::new()),
         active_sessions: RwLock::new(std::collections::HashSet::new()),
         rate_limiter: RwLock::new(HashMap::new()),
         notepads: RwLock::new(Vec::new()),
@@ -164,34 +162,23 @@ async fn main() {
         }
     });
 
-    // Start background login lockout cleanup
+    // Background cleanup for the per-IP request budget only. PIN-attempt
+    // lockouts now live in `shared_assets::auth::attempts` (process-global)
+    // and remove themselves when the lockout expires.
     let state_clone2 = state.clone();
     tokio::spawn(async move {
         loop {
             tokio::time::sleep(Duration::from_secs(60)).await;
-            state_clone2.clean_old_lockouts().await;
             state_clone2.clean_old_rate_limits().await;
         }
     });
 
-    let cors = if state.config.server.allowed_origins == "*" {
-        tower_http::cors::CorsLayer::permissive()
-    } else {
-        let mut cors = tower_http::cors::CorsLayer::new()
-            .allow_methods([
-                axum::http::Method::GET,
-                axum::http::Method::POST,
-                axum::http::Method::PUT,
-                axum::http::Method::DELETE,
-            ])
-            .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::COOKIE]);
-        for origin in state.config.server.allowed_origins.split(',') {
-            if let Ok(parsed) = origin.trim().parse::<axum::http::HeaderValue>() {
-                cors = cors.allow_origin(parsed);
-            }
-        }
-        cors.allow_credentials(true)
-    };
+    // CORS, security headers, and HSTS are all delegated to `shared-assets`,
+    // so the same production-tested configuration applies across every
+    // companion app. The `Arc<ServerConfig>` is shared between layers to keep
+    // the dependency tree small.
+    let server_config = Arc::new(state.config.server.clone());
+    let cors = cors_layer(&server_config);
 
     // Setup routes
     let api_routes = Router::new()
@@ -226,9 +213,13 @@ async fn main() {
                 .precompressed_br()
                 .precompressed_gzip(),
         )
+        .layer(middleware::from_fn_with_state(
+            HstsState(server_config.clone()),
+            hsts_layer,
+        ))
+        .layer(middleware::from_fn(security_headers_layer))
         .layer(tower_http::trace::TraceLayer::new_for_http())
         .layer(cors)
-        .layer(middleware::from_fn(security_headers_middleware))
         .with_state(state.clone());
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))

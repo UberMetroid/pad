@@ -12,12 +12,6 @@ use tokio::sync::mpsc::UnboundedSender;
 use crate::migration::{Notepad, migrate_default_notepad, sanitize_filename};
 use crate::search::IndexedItem;
 
-#[derive(Debug, Clone)]
-pub struct LoginAttempts {
-    pub count: usize,
-    pub last_attempt: Instant,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NotepadsJson {
     pub notepads: Vec<Notepad>,
@@ -37,13 +31,12 @@ pub struct AppStateInner {
     // Operational Transformation (OT) history map: notepadId -> Operations
     pub operations_history: RwLock<HashMap<String, Vec<serde_json::Value>>>,
 
-    // Login attempts brute-force prevention
-    pub login_attempts: RwLock<HashMap<IpAddr, LoginAttempts>>,
-
-    // Active session IDs cache
+    // Active session IDs cache (random tokens, never the PIN).
     pub active_sessions: RwLock<std::collections::HashSet<String>>,
 
-    // Rate limiter request counts
+    // Per-IP request budget for general rate limiting (separate from PIN
+    // brute-force lockouts, which now live in `shared_assets::auth::attempts`
+    // and are global to the process).
     pub rate_limiter: RwLock<HashMap<IpAddr, Vec<Instant>>>,
 
     // Notepad metadata and index cache
@@ -118,7 +111,7 @@ impl AppStateInner {
             let matches_sanitized_name = data
                 .notepads
                 .iter()
-                .any(|n| sanitize_filename(&n.name) == txt_file);
+                .any(|n| sanitize_filename(&n.name).ok().as_deref() == Some(&txt_file));
 
             if !matches_id && !matches_sanitized_name {
                 let unique_name = self.generate_unique_name(&txt_file, &data.notepads);
@@ -151,48 +144,16 @@ impl AppStateInner {
         let mut counter = 1;
 
         while existing.iter().any(|n| n.name == unique_name)
-            || sanitize_filename(&unique_name).to_lowercase() == "default"
+            || sanitize_filename(&unique_name)
+                .ok()
+                .map(|s| s.to_lowercase() == "default")
+                .unwrap_or(false)
         {
             unique_name = format!("{}-{}", desired_name, counter);
             counter += 1;
         }
 
         unique_name
-    }
-
-    // Rate Limiting helper: check lockout
-    pub async fn is_locked_out(&self, ip: IpAddr) -> bool {
-        let map = self.login_attempts.read().await;
-        if let Some(attempts) = map.get(&ip)
-            && attempts.count >= self.config.server.max_attempts as usize
-        {
-            let elapsed = attempts.last_attempt.elapsed();
-            if elapsed < Duration::from_secs(self.config.server.lockout_time_minutes * 60) {
-                return true;
-            }
-        }
-        false
-    }
-
-    pub async fn record_login_attempt(&self, ip: IpAddr) {
-        let mut map = self.login_attempts.write().await;
-        let attempts = map.entry(ip).or_insert(LoginAttempts {
-            count: 0,
-            last_attempt: Instant::now(),
-        });
-        attempts.count += 1;
-        attempts.last_attempt = Instant::now();
-    }
-
-    pub async fn reset_login_attempts(&self, ip: IpAddr) {
-        let mut map = self.login_attempts.write().await;
-        map.remove(&ip);
-    }
-
-    pub async fn clean_old_lockouts(&self) {
-        let mut map = self.login_attempts.write().await;
-        let lockout_dur = Duration::from_secs(self.config.server.lockout_time_minutes * 60);
-        map.retain(|_, attempts| attempts.last_attempt.elapsed() < lockout_dur);
     }
 
     pub async fn check_rate_limit(&self, ip: IpAddr) -> bool {

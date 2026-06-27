@@ -3,11 +3,39 @@ use axum::{
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs;
 
 use crate::migration::{Notepad, get_notepad_file_path, sanitize_filename};
 use crate::state::{AppState, NotepadsJson};
+
+/// Returns `true` if `path` resolves to a location inside `data_dir`.
+///
+/// Used as the second line of defense after [`sanitize_filename`]: even if a
+/// name passes the sanitizer, we confirm the resolved file path is contained
+/// in the data directory before writing. Prevents symlink-in-data-dir escapes
+/// (same class of bug the first review flagged in `beam`).
+fn is_path_within_data_dir(path: &Path, data_dir: &Path) -> bool {
+    let canonical_data = match data_dir.canonicalize() {
+        Ok(p) => p,
+        Err(_) => return false,
+    };
+    // For files that don't exist yet (create/rename), canonicalize the parent
+    // and re-attach the filename so we don't reject a legitimate new file.
+    let canonical_path = match path.canonicalize() {
+        Ok(p) => p,
+        Err(_) => {
+            if let (Some(parent), Some(file_name)) = (path.parent(), path.file_name()) {
+                if let Ok(cp) = parent.canonicalize() {
+                    return cp.join(file_name).starts_with(&canonical_data);
+                }
+            }
+            return false;
+        }
+    };
+    canonical_path.starts_with(&canonical_data)
+}
 
 pub const PAGE_HISTORY_COOKIE: &str = "log_page_history";
 
@@ -66,8 +94,24 @@ pub async fn create_notepad(jar: CookieJar, State(state): State<AppState>) -> im
             .into_response();
     }
 
-    let sanitized = sanitize_filename(&unique_name);
+    let sanitized = match sanitize_filename(&unique_name) {
+        Ok(s) => s,
+        Err(e) => {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                axum::Json(serde_json::json!({ "error": format!("Invalid notepad name: {}", e) })),
+            )
+                .into_response();
+        }
+    };
     let file_path = state.data_dir.join(format!("{}.txt", sanitized));
+    if !is_path_within_data_dir(&file_path, &state.data_dir) {
+        return (
+            axum::http::StatusCode::BAD_REQUEST,
+            axum::Json(serde_json::json!({ "error": "Resolved path escapes data directory" })),
+        )
+            .into_response();
+    }
     if fs::write(&file_path, "").await.is_err() {
         return (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -151,8 +195,28 @@ pub async fn rename_notepad(
     let unique_name = state.generate_unique_name(&payload.name, &other_notepads);
 
     let current_file_path = get_notepad_file_path(&original_notepad, &state.data_dir).await;
-    let sanitized_new = sanitize_filename(&unique_name);
+    let sanitized_new = match sanitize_filename(&unique_name) {
+        Ok(s) => s,
+        Err(e) => {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                axum::Json(serde_json::json!({ "error": format!("Invalid notepad name: {}", e) })),
+            )
+                .into_response();
+        }
+    };
     let mut new_file_path = state.data_dir.join(format!("{}.txt", sanitized_new));
+
+    // Validate that the rename target stays inside the data directory. Defense
+    // in depth: even if sanitize_filename regresses, this rejects any path
+    // that would resolve outside `data_dir` (e.g. via a symlink).
+    if !is_path_within_data_dir(&new_file_path, &state.data_dir) {
+        return (
+            axum::http::StatusCode::BAD_REQUEST,
+            axum::Json(serde_json::json!({ "error": "Resolved path escapes data directory" })),
+        )
+            .into_response();
+    }
 
     let should_rename_file = id != "default"
         && original_notepad.name != unique_name
@@ -163,9 +227,14 @@ pub async fn rename_notepad(
             let mut counter = 1;
             let mut found_available = false;
             while counter < 100 {
-                let alt_name = sanitize_filename(&format!("{}-{}", unique_name, counter));
+                let alt_name = match sanitize_filename(&format!("{}-{}", unique_name, counter)) {
+                    Ok(s) => s,
+                    Err(_) => break,
+                };
                 let alt_path = state.data_dir.join(format!("{}.txt", alt_name));
-                if fs::metadata(&alt_path).await.is_err() {
+                if is_path_within_data_dir(&alt_path, &state.data_dir)
+                    && fs::metadata(&alt_path).await.is_err()
+                {
                     new_file_path = alt_path;
                     found_available = true;
                     break;

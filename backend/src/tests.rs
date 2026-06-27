@@ -1,22 +1,4 @@
 use super::*;
-use std::net::IpAddr;
-
-#[test]
-fn test_hash_pin() {
-    let hashed = utils::hash_pin("1234");
-    assert_ne!(hashed, "1234");
-    assert_eq!(hashed.len(), 64);
-    assert_eq!(hashed, utils::hash_pin("1234"));
-    assert_ne!(hashed, utils::hash_pin("5678"));
-}
-
-#[test]
-fn test_secure_compare() {
-    assert!(utils::secure_compare("abcd", "abcd"));
-    assert!(!utils::secure_compare("abcd", "abce"));
-    assert!(!utils::secure_compare("abcd", "abcde"));
-    assert!(!utils::secure_compare("abcde", "abcd"));
-}
 
 #[test]
 fn test_fuzzy_match_subsequence() {
@@ -31,20 +13,60 @@ fn test_fuzzy_match_subsequence() {
 }
 
 #[test]
-fn test_parse_trusted_proxies() {
-    let raw = "127.0.0.1, 10.0.0.0/8 # private range";
-    let list = utils::parse_trusted_proxies(raw);
-    assert_eq!(list.len(), 2);
-    assert_eq!(list[0].addr(), "127.0.0.1".parse::<IpAddr>().unwrap());
-    assert_eq!(list[1].prefix_len(), 8);
+fn test_origin_allowed_in_development() {
+    // Development is the documented convenience: any origin works.
+    assert!(ws::is_origin_allowed(Some("https://evil.example"), "http://localhost:4402", "development"));
+    assert!(ws::is_origin_allowed(None, "http://localhost:4402", "development"));
 }
 
 #[test]
-fn test_is_trusted_proxy() {
-    let list = utils::parse_trusted_proxies("10.0.0.0/8");
-    assert!(utils::is_trusted_proxy("10.0.0.1".parse().unwrap(), &list));
-    assert!(!utils::is_trusted_proxy(
-        "192.168.1.1".parse().unwrap(),
-        &list
-    ));
+fn test_origin_allowed_in_production_matches_base() {
+    assert!(ws::is_origin_allowed(Some("https://pad.example.com"), "https://pad.example.com", "production"));
+    // Trailing slash on either side should not matter.
+    assert!(ws::is_origin_allowed(Some("https://pad.example.com/"), "https://pad.example.com", "production"));
+    assert!(ws::is_origin_allowed(Some("https://pad.example.com"), "https://pad.example.com/", "production"));
+}
+
+#[test]
+fn test_origin_rejected_in_production() {
+    // No Origin header in production is rejected (browsers always send one).
+    assert!(!ws::is_origin_allowed(None, "https://pad.example.com", "production"));
+
+    // Mismatched origin is rejected.
+    assert!(!ws::is_origin_allowed(Some("https://evil.example"), "https://pad.example.com", "production"));
+    assert!(!ws::is_origin_allowed(Some("http://pad.example.com"), "https://pad.example.com", "production"));
+}
+
+#[test]
+fn test_origin_does_not_honor_wildcard_base_in_production() {
+    // The previous implementation had a `base_url == "*"` shortcut that
+    // disabled the check. That shortcut is gone — a wildcard base in
+    // production now rejects everything (forcing the operator to either
+    // set the real base URL or run with NODE_ENV=development).
+    assert!(!ws::is_origin_allowed(Some("https://anything"), "*", "production"));
+    assert!(!ws::is_origin_allowed(Some("https://anything"), "*", "production"));
+}
+
+#[test]
+fn test_sanitize_filename_rules() {
+    use crate::migration::sanitize_filename;
+
+    assert_eq!(sanitize_filename("hello").unwrap(), "hello");
+    assert_eq!(sanitize_filename("my notepad").unwrap(), "my notepad");
+    assert_eq!(sanitize_filename("a/b\\c").unwrap(), "a_b_c");
+
+    // Path-traversal-class inputs are rejected.
+    assert!(sanitize_filename("..").is_err());
+    assert!(sanitize_filename(".").is_err());
+    assert!(sanitize_filename("....").is_err());
+    assert!(sanitize_filename(".hidden").is_err());
+
+    // Windows-reserved names are rejected.
+    assert!(sanitize_filename("CON").is_err());
+    assert!(sanitize_filename("nul").is_err());
+
+    // Empty / whitespace-only is rejected.
+    assert!(sanitize_filename("").is_err());
+    assert!(sanitize_filename("   ").is_err());
+    assert!(sanitize_filename("///").is_err());
 }

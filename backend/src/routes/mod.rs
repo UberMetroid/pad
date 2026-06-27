@@ -3,10 +3,7 @@ pub mod notepads_crud;
 pub mod notepads_io;
 pub mod pages;
 
-pub use auth::{
-    get_config, logout, pin_required, rate_limit_middleware, require_pin,
-    security_headers_middleware, verify_pin,
-};
+pub use auth::{get_config, logout, pin_required, rate_limit_middleware, require_pin, verify_pin};
 pub use notepads_crud::{create_notepad, get_notepads, rename_notepad};
 pub use notepads_io::{delete_notepad, get_notes, save_notes};
 pub use pages::{serve_login, serve_root};
@@ -20,6 +17,10 @@ use tokio::fs;
 
 use crate::state::AppState;
 
+/// Default page size for the search API. 25 fits comfortably in the viewport
+/// without forcing an extra round-trip for typical notepad collections.
+const SEARCH_PAGE_SIZE: usize = 25;
+
 // API: Search
 #[derive(serde::Deserialize)]
 pub struct SearchQueryParams {
@@ -32,32 +33,30 @@ pub async fn search_api(
     Query(params): Query<SearchQueryParams>,
 ) -> impl IntoResponse {
     let query = params.query.unwrap_or_default();
-    let page = params.page.unwrap_or(1);
+    // Clamp `page` to a sane range; downstream math assumes 1-indexed positive.
+    let page = params.page.unwrap_or(1).max(1);
 
     let results = state.search_notepads(&query).await;
-    let page_size = results.len();
+    let total = results.len();
+    let total_pages = total.div_ceil(SEARCH_PAGE_SIZE).max(1);
+    // If the caller requests a page past the end, return an empty result set
+    // rather than 400 — keeps the UI responsive while typing fast queries.
+    let page = page.min(total_pages);
 
-    let total_pages = if page_size == 0 {
-        0
+    let start = (page - 1) * SEARCH_PAGE_SIZE;
+    let end = (start + SEARCH_PAGE_SIZE).min(total);
+    let paginated_results = if total == 0 || start >= total {
+        Vec::new()
     } else {
-        results.len().div_ceil(page_size)
-    };
-    let paginated_results = if page_size == 0 {
-        vec![]
-    } else {
-        let start = (page - 1) * page_size;
-        let end = std::cmp::min(page * page_size, results.len());
-        if start < results.len() {
-            results[start..end].to_vec()
-        } else {
-            vec![]
-        }
+        results[start..end].to_vec()
     };
 
     axum::Json(serde_json::json!({
         "results": paginated_results,
         "totalPages": total_pages,
-        "currentPage": page
+        "currentPage": page,
+        "pageSize": SEARCH_PAGE_SIZE,
+        "total": total,
     }))
 }
 

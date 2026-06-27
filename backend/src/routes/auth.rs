@@ -4,11 +4,13 @@ use axum::{
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
+use constant_time_eq::constant_time_eq;
+use shared_assets::auth::attempts;
+use shared_assets::server::get_client_ip;
 use std::net::SocketAddr;
 use std::time::Duration;
 
 use crate::state::AppState;
-use crate::utils::{get_client_ip, secure_compare};
 
 pub const COOKIE_NAME: &str = "PAD_PIN";
 
@@ -23,7 +25,7 @@ pub async fn is_authenticated(jar: &CookieJar, state: &AppState, headers: &Heade
 
     match (cookie_pin, header_pin) {
         (Some(cookie), _) => state.active_sessions.read().await.contains(cookie),
-        (None, Some(hdr)) => secure_compare(hdr, pin),
+        (None, Some(hdr)) => constant_time_eq(hdr.as_bytes(), pin.as_bytes()),
         (None, None) => false,
     }
 }
@@ -70,16 +72,17 @@ pub async fn pin_required(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
 ) -> impl IntoResponse {
-    let ip = get_client_ip(
+    let ip_str = get_client_ip(
         &headers,
         addr,
         state.config.server.trust_proxy,
         &state.config.server.trusted_proxies,
     );
+    let lockout_dur = Duration::from_secs(state.config.server.lockout_time_minutes * 60);
     axum::Json(serde_json::json!({
         "required": state.config.server.pin.is_some(),
         "length": state.config.server.pin.as_ref().map_or(0, |p| p.len()),
-        "locked": state.is_locked_out(ip).await,
+        "locked": attempts::is_locked_out(&ip_str, state.config.server.max_attempts, lockout_dur),
         "enable_translation": state.config.server.enable_translation,
         "enable_themes": state.config.server.enable_themes,
         "enable_print": state.config.server.enable_print,
@@ -131,21 +134,18 @@ pub async fn verify_pin(
             .into_response();
     }
 
-    let ip = get_client_ip(
+    let ip_str = get_client_ip(
         &headers,
         addr,
         state.config.server.trust_proxy,
         &state.config.server.trusted_proxies,
     );
+    let max_attempts = state.config.server.max_attempts;
+    let lockout_dur = Duration::from_secs(state.config.server.lockout_time_minutes * 60);
 
-    if state.is_locked_out(ip).await {
-        let map = state.login_attempts.read().await;
-        let last_time = map.get(&ip).map(|a| a.last_attempt).unwrap();
-        let lockout_dur = Duration::from_secs(state.config.server.lockout_time_minutes * 60);
-        let time_left = lockout_dur
-            .checked_sub(last_time.elapsed())
-            .unwrap_or(Duration::ZERO);
-        let time_left_min = (time_left.as_secs_f64() / 60.0).ceil() as u64;
+    if attempts::is_locked_out(&ip_str, max_attempts, lockout_dur) {
+        let remaining = attempts::lockout_remaining_secs(&ip_str, lockout_dur);
+        let time_left_min = (remaining as f64 / 60.0).ceil() as u64;
 
         return (
             axum::http::StatusCode::TOO_MANY_REQUESTS,
@@ -161,7 +161,7 @@ pub async fn verify_pin(
     let is_valid_fmt = payload.pin.len() >= 4 && payload.pin.len() <= 64;
 
     if !is_valid_fmt {
-        state.record_login_attempt(ip).await;
+        attempts::record_attempt(&ip_str);
         return (
             axum::http::StatusCode::BAD_REQUEST,
             axum::Json(serde_json::json!({
@@ -172,8 +172,8 @@ pub async fn verify_pin(
             .into_response();
     }
 
-    if secure_compare(&payload.pin, expected_pin) {
-        state.reset_login_attempts(ip).await;
+    if constant_time_eq(payload.pin.as_bytes(), expected_pin.as_bytes()) {
+        attempts::reset_attempts(&ip_str);
 
         let session_id = generate_session_id();
         state
@@ -203,11 +203,8 @@ pub async fn verify_pin(
 
         (jar, axum::Json(serde_json::json!({ "success": true }))).into_response()
     } else {
-        state.record_login_attempt(ip).await;
-
-        let map = state.login_attempts.read().await;
-        let attempts_count = map.get(&ip).map(|a| a.count).unwrap_or(0);
-        let attempts_left = state.config.server.max_attempts as usize -(attempts_count);
+        let attempt = attempts::record_attempt(&ip_str);
+        let attempts_left = max_attempts.saturating_sub(attempt.count);
 
         (
             axum::http::StatusCode::UNAUTHORIZED,
@@ -253,8 +250,12 @@ pub async fn rate_limit_middleware(
         state.config.server.trust_proxy,
         &state.config.server.trusted_proxies,
     );
+    // shared-assets returns a normalized String IP. The per-IP request budget
+    // is keyed by the canonicalized IP, so all rate-limit lookups share a key
+    // with the lockout table for the same client.
+    let ip_key: std::net::IpAddr = ip.parse().unwrap_or(std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
 
-    if !state.check_rate_limit(ip).await {
+    if !state.check_rate_limit(ip_key).await {
         let body = serde_json::json!({
             "error": "Too many requests. Please slow down."
         });
@@ -264,33 +265,4 @@ pub async fn rate_limit_middleware(
     }
 
     next.run(req).await
-}
-
-pub async fn security_headers_middleware(
-    req: axum::extract::Request,
-    next: axum::middleware::Next,
-) -> axum::response::Response {
-    let mut response = next.run(req).await;
-    let headers = response.headers_mut();
-
-    headers.insert(
-        "X-Frame-Options",
-        axum::http::header::HeaderValue::from_static("DENY"),
-    );
-    headers.insert(
-        "X-Content-Type-Options",
-        axum::http::header::HeaderValue::from_static("nosniff"),
-    );
-    headers.insert(
-        "Referrer-Policy",
-        axum::http::header::HeaderValue::from_static("strict-origin-when-cross-origin"),
-    );
-    headers.insert(
-        "Content-Security-Policy", 
-        axum::http::header::HeaderValue::from_static(
-            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: http: https:; font-src 'self'; manifest-src 'self';"
-        )
-    );
-
-    response
 }
