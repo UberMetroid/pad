@@ -13,16 +13,16 @@ use tower_http::services::ServeDir;
 use tracing_subscriber::{Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
-mod migration;
 mod routes;
-mod search;
+pub mod services;
 mod state;
 #[cfg(test)]
 mod tests;
 mod ws;
 
 pub use config::AppConfig;
-use migration::migrate_all_notepads_to_name_based_files;
+pub use services::{migration, search};
+use services::migration::migrate_all_notepads_to_name_based_files;
 use routes::*;
 use state::{AppState, AppStateInner};
 use ws::handle_socket;
