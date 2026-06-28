@@ -1,97 +1,17 @@
+use crate::state::AppState;
 use axum::{
     extract::{ConnectInfo, State},
     http::HeaderMap,
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-use constant_time_eq::constant_time_eq;
 use shared_assets::auth::attempts;
 use shared_assets::server::get_client_ip;
 use std::net::SocketAddr;
 use std::time::Duration;
+use super::COOKIE_NAME;
 
-use crate::state::AppState;
 
-pub const COOKIE_NAME: &str = "PAD_PIN";
-
-// Authenticated helper
-pub async fn is_authenticated(jar: &CookieJar, state: &AppState, headers: &HeaderMap) -> bool {
-    let pin = match &state.config.server.pin {
-        Some(p) => p,
-        None => return true,
-    };
-    let cookie_pin = jar.get(COOKIE_NAME).map(|c| c.value());
-    let header_pin = headers.get("x-pin").and_then(|h| h.to_str().ok());
-
-    match (cookie_pin, header_pin) {
-        (Some(cookie), _) => state.active_sessions.read().await.contains(cookie),
-        (None, Some(hdr)) => constant_time_eq(hdr.as_bytes(), pin.as_bytes()),
-        (None, None) => false,
-    }
-}
-
-// Pin Middleware
-pub async fn require_pin(
-    jar: CookieJar,
-    State(state): State<AppState>,
-    req: axum::extract::Request,
-    next: axum::middleware::Next,
-) -> impl IntoResponse {
-    if !is_authenticated(&jar, &state, req.headers()).await {
-        return (
-            axum::http::StatusCode::UNAUTHORIZED,
-            axum::Json(serde_json::json!({ "error": "Unauthorized" })),
-        )
-            .into_response();
-    }
-    next.run(req).await
-}
-
-// API: Config
-pub async fn get_config(State(state): State<AppState>) -> impl IntoResponse {
-    axum::Json(serde_json::json!({
-        "siteTitle": state.config.server.site_title,
-        "baseUrl": state.config.server.base_url,
-        "version": state.config.version,
-        "enableTranslation": state.config.server.enable_translation,
-        "enable_translation": state.config.server.enable_translation,
-        "enableThemes": state.config.server.enable_themes,
-        "enable_themes": state.config.server.enable_themes,
-        "enablePrint": state.config.server.enable_print,
-        "enable_print": state.config.server.enable_print,
-        "showVersion": state.config.server.show_version,
-        "show_version": state.config.server.show_version,
-        "showGithub": state.config.server.show_github,
-        "show_github": state.config.server.show_github,
-    }))
-}
-
-// API: PIN requirement check
-pub async fn pin_required(
-    headers: HeaderMap,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    State(state): State<AppState>,
-) -> impl IntoResponse {
-    let ip_str = get_client_ip(
-        &headers,
-        addr,
-        state.config.server.trust_proxy,
-        &state.config.server.trusted_proxies,
-    );
-    let lockout_dur = Duration::from_secs(state.config.server.lockout_time_minutes * 60);
-    axum::Json(serde_json::json!({
-        "required": state.config.server.pin.is_some(),
-        "length": state.config.server.pin.as_ref().map_or(0, |p| p.len()),
-        "locked": attempts::is_locked_out(&ip_str, state.config.server.max_attempts, lockout_dur),
-        "enable_translation": state.config.server.enable_translation,
-        "enable_themes": state.config.server.enable_themes,
-        "enable_print": state.config.server.enable_print,
-        "show_version": state.config.server.show_version,
-        "show_github": state.config.server.show_github,
-    }))
-}
-
-// API: Verify PIN
 #[derive(serde::Deserialize)]
 pub struct VerifyPinPayload {
     pub pin: String,
@@ -116,6 +36,48 @@ pub fn generate_session_id() -> String {
     hasher.update(random_val.to_string().as_bytes());
     let result = hasher.finalize();
     result.iter().map(|b| format!("{:02x}", b)).collect()
+}
+
+pub async fn get_config(State(state): State<AppState>) -> impl IntoResponse {
+    axum::Json(serde_json::json!({
+        "siteTitle": state.config.server.site_title,
+        "baseUrl": state.config.server.base_url,
+        "version": state.config.version,
+        "enableTranslation": state.config.server.enable_translation,
+        "enable_translation": state.config.server.enable_translation,
+        "enableThemes": state.config.server.enable_themes,
+        "enable_themes": state.config.server.enable_themes,
+        "enablePrint": state.config.server.enable_print,
+        "enable_print": state.config.server.enable_print,
+        "showVersion": state.config.server.show_version,
+        "show_version": state.config.server.show_version,
+        "showGithub": state.config.server.show_github,
+        "show_github": state.config.server.show_github,
+    }))
+}
+
+pub async fn pin_required(
+    headers: HeaderMap,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    let ip_str = get_client_ip(
+        &headers,
+        addr,
+        state.config.server.trust_proxy,
+        &state.config.server.trusted_proxies,
+    );
+    let lockout_dur = Duration::from_secs(state.config.server.lockout_time_minutes * 60);
+    axum::Json(serde_json::json!({
+        "required": state.config.server.pin.is_some(),
+        "length": state.config.server.pin.as_ref().map_or(0, |p| p.len()),
+        "locked": attempts::is_locked_out(&ip_str, state.config.server.max_attempts, lockout_dur),
+        "enable_translation": state.config.server.enable_translation,
+        "enable_themes": state.config.server.enable_themes,
+        "enable_print": state.config.server.enable_print,
+        "show_version": state.config.server.show_version,
+        "show_github": state.config.server.show_github,
+    }))
 }
 
 pub async fn verify_pin(
@@ -172,7 +134,7 @@ pub async fn verify_pin(
             .into_response();
     }
 
-    if constant_time_eq(payload.pin.as_bytes(), expected_pin.as_bytes()) {
+    if constant_time_eq::constant_time_eq(payload.pin.as_bytes(), expected_pin.as_bytes()) {
         attempts::reset_attempts(&ip_str);
 
         let session_id = generate_session_id();
@@ -219,7 +181,6 @@ pub async fn verify_pin(
     }
 }
 
-// API: Logout
 pub async fn logout(jar: CookieJar, State(state): State<AppState>) -> impl IntoResponse {
     if let Some(cookie) = jar.get(COOKIE_NAME) {
         state.active_sessions.write().await.remove(cookie.value());
@@ -233,39 +194,4 @@ pub async fn logout(jar: CookieJar, State(state): State<AppState>) -> impl IntoR
             .build(),
     );
     (jar, axum::Json(serde_json::json!({ "success": true }))).into_response()
-}
-
-pub async fn rate_limit_middleware(
-    State(state): State<AppState>,
-    req: axum::extract::Request,
-    next: axum::middleware::Next,
-) -> impl IntoResponse {
-    let addr = req
-        .extensions()
-        .get::<ConnectInfo<SocketAddr>>()
-        .map(|ci| ci.0);
-
-    let ip = get_client_ip(
-        req.headers(),
-        addr.unwrap_or_else(|| SocketAddr::from(([127, 0, 0, 1], 0))),
-        state.config.server.trust_proxy,
-        &state.config.server.trusted_proxies,
-    );
-    // shared-assets returns a normalized String IP. The per-IP request budget
-    // is keyed by the canonicalized IP, so all rate-limit lookups share a key
-    // with the lockout table for the same client.
-    let ip_key: std::net::IpAddr = ip
-        .parse()
-        .unwrap_or(std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED));
-
-    if !state.check_rate_limit(ip_key).await {
-        let body = serde_json::json!({
-            "error": "Too many requests. Please slow down."
-        });
-        let mut response = axum::response::Json(body).into_response();
-        *response.status_mut() = axum::http::StatusCode::TOO_MANY_REQUESTS;
-        return response;
-    }
-
-    next.run(req).await
 }
