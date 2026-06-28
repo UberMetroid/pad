@@ -2,6 +2,8 @@ use crate::app::{App, Msg};
 use crate::services::{ApiService, StorageService};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use shared_assets::theme::Theme;
+
 
 impl App {
     pub fn create_app(ctx: &Context<Self>) -> Self {
@@ -95,25 +97,27 @@ impl App {
                 true
             }
             Msg::ToggleTheme => {
-                let next = match self.theme.as_str() {
-                    "crateria" => "brinstar",
-                    "brinstar" => "norfair",
-                    "norfair" => "wrecked_ship",
-                    "wrecked_ship" => "maridia",
-                    "maridia" => "tourian",
-                    _ => "crateria",
+                let current = Theme::from_name(&self.theme).unwrap_or_default();
+                let next = match current {
+                    Theme::Brinstar => Theme::Norfair,
+                    Theme::Norfair => Theme::WreckedShip,
+                    Theme::WreckedShip => Theme::Maridia,
+                    Theme::Maridia => Theme::Tourian,
+                    Theme::Tourian => Theme::Crateria,
+                    Theme::Crateria => Theme::Brinstar,
                 };
-                StorageService::set_theme(next);
+                StorageService::set_theme(next.name());
                 if let Some(html) = web_sys::window()
                     .and_then(|w| w.document())
                     .and_then(|d| d.document_element())
                 {
-                    let _ = html.set_attribute("data-theme", next);
-                    let _ = html.set_attribute("class", next);
+                    let _ = html.set_attribute("data-theme", next.name());
+                    let _ = html.set_attribute("class", next.name());
                 }
-                self.theme = next.to_string();
+                self.theme = next.name().to_string();
                 true
             }
+
             Msg::Logout => {
                 let link = ctx.link().clone();
                 spawn_local(async move {

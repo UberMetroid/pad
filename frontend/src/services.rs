@@ -4,25 +4,28 @@ use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
 
 use crate::storage::StorageService as GenericStorage;
+use shared_assets::theme::{Theme, mapping::Scheme};
+
 
 pub struct StorageService;
 
 impl StorageService {
     pub fn get_theme() -> String {
-        let raw = GenericStorage::get_item("theme", "crateria");
-        let theme = match raw.as_str() {
-            "light" => "brinstar".to_string(),
-            "dark" => "crateria".to_string(),
-            "nord" => "maridia".to_string(),
-            "dracula" => "wrecked_ship".to_string(),
-            "sepia" => "norfair".to_string(),
-            t => t.to_string(),
+        let raw = GenericStorage::get_item("theme", Theme::default().name());
+        let theme = if let Some(scheme) = Scheme::from_id(&raw) {
+            scheme.to_theme().name().to_string()
+        } else {
+            Theme::from_name(&raw)
+                .unwrap_or_default()
+                .name()
+                .to_string()
         };
         if theme != raw {
             GenericStorage::set_item("theme", &theme);
         }
         theme
     }
+
 
     pub fn set_theme(theme: &str) {
         GenericStorage::set_item("theme", theme);
